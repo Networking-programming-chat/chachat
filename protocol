@@ -1,0 +1,16 @@
+
+
+typedef struct header1{
+    char* userid 	//server-generated, or user specified. Handle collisions.
+    //char* nick 		//optional, can same nicks exist?
+    uint16_t msglen	//truncate messages to fit 16bit 65k chars.
+    char* message  	//malloc'd messagebody. below some ideas.
+    int somecounter or such
+}msgheader;
+
+messagebody:
+
+1. readfunction in a thread on the server, reads msglen bytes from socket for 
+2. 
+
+

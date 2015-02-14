@@ -1,0 +1,21 @@
+name : ChaChat
+topic: Chat,
+lang: C
+
+
+
+Feb 27th:
+
+Proto
+Work distribution
+
+Features:
+
+Client<->server-communications
+singleserver2clients
+
+s2s-communications
+ - channel separation
+
+
+
