@@ -1,0 +1,35 @@
+Meeting on 13th Februay, we discussed:
+
+Task1.  Just do a server to read a line from sockets with its own thread per each client. Then do whatever.
+
+
+Task2. Make the main thread survive crashing threads.
+
+
+Task3. Desgin the actual messaging protocol.
+		- server can allocate an userid to clients of not found
+userID (nick?)
+messagebody
+joined channels?
+
+
+
+Task4. Save the userIDs and stuff to a database on the server.
+
+Task5. Clients should communicate with one another using the same server and other servers connected to the network 
+Task6. All servers on the network should have a knowledge of all connected clients
+
+Task7. Clients should be able to connect to any server available on the network 
+
+Task8. 
+
+Database on server contains following info
+Client Table
+Client id
+Client name (nickname)
+Client's server
+Channels, in which the client is joined
+Channel Table
+Channel name
+(Channel topic)
+
