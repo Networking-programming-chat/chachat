@@ -1,0 +1,10 @@
+Client connect to server:
+ client->DNS server, domain name resolution to get the ip address of the server.
+ client->server, client connects to the server, server allocates an unique ID for the client and add client 
+                 information to the database on server side.
+ server->server, synchronize the database between servers.
+ 
+Client communicate:
+  client sends P2P message: through the server it connects. The server parses the message and forward the message 
+                            based on its "routing table" to the destination server. 
+  client sends message through channel: 
