@@ -6,7 +6,7 @@
 *.obj
 *.elf
 
-# Debug symbols
+# Debug symbols (clang)
 *.dSYM
 
 # Precompiled Headers
@@ -32,6 +32,9 @@
 *.i*86
 *.x86_64
 *.hex
+
+# Databases
+*.db
 
 # File system stuff
 .DS_Store
