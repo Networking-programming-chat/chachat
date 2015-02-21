@@ -79,6 +79,7 @@ void create_data(sqlite3 * db)
         status = sqlite3_bind_text(stmt, 3, nicks[i], -1, SQLITE_STATIC);
         if (printsql(status, errmsg, "sqlite3_bind_text fail") != SQLITE_OK) {return;}
         
+        // Make the actual SQL call
         status = sqlite3_step(stmt);
         status = status == SQLITE_DONE ? SQLITE_OK : SQLITE_FAIL;
         if (printsql(status, errmsg, "sqlite3_step fail") != SQLITE_OK) {return;}
@@ -97,8 +98,10 @@ void create_data(sqlite3 * db)
 static int callback(void *data, int argc, char **argv, char **azColName){
     int i;
     
+    // Data is passed here from the sqlite3_exec call, it may contain anything
     printf("%s\n", (const char*)data);
     
+    // Iterate the arguments to show the query results
     for(i = 0; i < argc; ++i){
         printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
     }
