@@ -6,6 +6,9 @@
 *.obj
 *.elf
 
+# Debug symbols
+*.dSYM
+
 # Precompiled Headers
 *.gch
 *.pch
@@ -29,3 +32,6 @@
 *.i*86
 *.x86_64
 *.hex
+
+# File system stuff
+.DS_Store
