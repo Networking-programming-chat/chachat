@@ -41,7 +41,7 @@ messagebody:
 
 1. might be easier to separate the header struct from the data after all.
 
-    #s2c example
+#s2c example
 
     typedef struct header_s2c{
 	    char* senderid;	//server-generated, or user specified. Handle collisions.
@@ -52,7 +52,8 @@ messagebody:
     }s2cMessage;
 
 
-    #s2s	
+#s2s
+
     typedef struct header_s2s{
         uint16_t arraylen;    //truncate messages to fit 16bit 65k chars.
         uint16_t listlen;    //truncate messages to fit 16bit 65k chars.
