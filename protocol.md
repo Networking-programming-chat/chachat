@@ -68,3 +68,58 @@ messagebody:
 - It seems s2c protocol messages could be passed along unaltered inside the network
 - Perhaps the clientarray can also hold channelnames hosted on a specific server. There is little difference from protocol standpoint.
 
+
+----------------
+
+#Protocol suggestion 2
+
+Client -> server
+
+    uint8_t idlen           1 byte                      // Length of id
+    uint8_t reslen          1 byte                      // Length of recipient
+    uint16_t meslen         2 bytes                     // Length of message
+    char* id                idlen bytes (up to 255)     // id of sender
+    char* res               reslen bytes                // recipient
+    uint16_t message        meslen bytes                // Message (in ascii or utf-8, I'd say we can just choose one for everyone) 
+
+Server -> client
+
+    uint8_t idlen           1 byte                      // Length of sender id
+    uint16_t meslen         2 bytes                     // Length of message
+    char* id                idlen bytes (up to 255)     // id of sender
+    uint16_t message        meslen bytes                // Message
+
+Server -> server
+
+1. Uses client-to-server protocol to relay messages
+2. Uses client-to-server protocol to join the server network
+3. Uses server-to-server protocol to list users and channels for new servers joining the network and for servers 
+4. Uses server-to-server protocol to list new users, removed users, new channels, and removed channels to other servers
+
+Could this be improved to be more effective?
+
+    uint32_t userlistlen     4 bytes                     // Length of user list
+    uint32_t channellistlen  4 bytes                     // Length of channel list
+    
+    userinfo {                                           // User info "struct"
+        uint8_t idlen
+        uint8_t nicklen
+        uint8_t serveridlen
+        char* id             idlen bytes
+        char* nick           nicklen bytes
+        char* serverid       serveridlen bytes           // if serverid is null, the user has disconnected
+    }
+    
+    channelinfo {                                        // Channel info "struct"
+        uint8_t namelen
+        uint16_t topiclen
+        uint32_t usercount                               // if usercount is 0, the channel is removed
+        char* name           namelen bytes
+        char* topic          topiclen bytes
+        
+        useridlist {                                     // User id "struct"
+            uint8_t idlen
+            char* id         idlen bytes
+        }
+    }
+
