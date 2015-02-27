@@ -41,16 +41,16 @@ Client:
 
 
 #c2s protos
-typedef struct header1{
-    char* userid;       //server-generated, or user specified. Handle collisions.
-    uint16_t msglen;    //truncate messages to fit 16bit 65k chars.
-    int type;           //ascii/bin? utf8?
-    char* message;      //malloc'd messagebody. below some ideas.
-    int somecounter or such
-}Message;
+
+    typedef struct header1{
+	char* userid;       //server-generated, or user specified. Handle collisions.
+	uint16_t msglen;    //truncate messages to fit 16bit 65k chars.
+	int type;           //ascii/bin? utf8?
+	char* message;      //malloc'd messagebody. below some ideas.
+	int somecounter or such
+    }Message;
 
 messagebody:
-
 1. readfunction in a thread on the server, reads msglen bytes from socket
 2. as a string or binary. probably string. 8-bit characters?
 3. userid can have prefixes, ex. #!&% whatever to denote channels/groupchats. If specified groupchat room does not exist, it 
