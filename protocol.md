@@ -73,7 +73,7 @@ messagebody:
 
 #Protocol suggestion 2
 
-Client -> server
+Client -> server -> client
 
     uint8_t idlen           1 byte                      // Length of id
     uint8_t reslen          1 byte                      // Length of recipient
@@ -81,13 +81,6 @@ Client -> server
     char* id                idlen bytes (up to 255)     // id of sender
     char* res               reslen bytes                // recipient
     uint16_t message        meslen bytes                // Message (in ascii or utf-8, I'd say we can just choose one for everyone) 
-
-Server -> client
-
-    uint8_t idlen           1 byte                      // Length of sender id
-    uint16_t meslen         2 bytes                     // Length of message
-    char* id                idlen bytes (up to 255)     // id of sender
-    uint16_t message        meslen bytes                // Message
 
 Server -> server
 
