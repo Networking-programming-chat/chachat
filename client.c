@@ -3,18 +3,18 @@
 // create a socket
 // connection to the server
 //
-//argu: char *host is the string of server's name
-//     char *serv is the port of server in string format
+//argu: char *servName is the string of server's name
+//     char *servPort is the port of server in string format
 
 //return: the sock desciptor of connection
-#include "tcp_connect.h"
+#include "client.h"
 #include <stdio.h>
 #include <sys/socket.h> //socket.
 #include <strings.h>  //bzero
 #include <netdb.h> // addrinfo
 #include <unistd.h> //close
 
-int tcp_connect(const char *host, const char *serv){
+int client(const char *servName, const char *servPort){
     int n,sockfd;
     struct addrinfo hints, *res,*ressave;
     
@@ -22,15 +22,11 @@ int tcp_connect(const char *host, const char *serv){
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     
-    if ( (n = getaddrinfo(host, serv, &hints, &res)) != 0) {
-        fprintf(stderr, "tcp_connect error for %s, %s: %s\n",
-                host, serv, gai_strerror(n));
-        return -1;
-    }
     
-    if ( (n = getaddrinfo(host, serv, &hints, &res)) != 0) {
+    
+    if ( (n = getaddrinfo(servName, servPort, &hints, &res)) != 0) {
         fprintf(stderr, "tcp_connect error for %s, %s: %s\n",
-                host, serv, gai_strerror(n));
+                servName, servPort, gai_strerror(n));
         return -1;
     }
     
@@ -50,7 +46,7 @@ int tcp_connect(const char *host, const char *serv){
     } while ( (res = res->ai_next) != NULL);
     
     if (res == NULL) {	/* errno set from final connect() */
-        fprintf(stderr, "tcp_connect error for %s, %s\n", host, serv);
+        fprintf(stderr, "tcp_connect error for %s, %s\n", servName, servPort);
         sockfd = -1;
     } else {
         printf("connect to server success\n");
