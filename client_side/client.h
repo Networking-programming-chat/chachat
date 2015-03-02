@@ -5,14 +5,14 @@
 #include <sys/socket.h>
 
 //
-//tcp_connect function:
+//client function:
 // create a socket
 // connection to the server
 //
 //argu: char *host is the string of server's name
 //     char *serv is the port of server in string format
 //return: the sock desciptor
-int tcp_connect(const char *host, const char *serv);
+int client(const char *servName, const char *servPort);
 
 
 
