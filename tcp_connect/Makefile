@@ -1,10 +1,10 @@
-TARGETS = tcp_connect_test
+TARGETS = client_test
 
 CFLAGS = -g -Wall -Wextra -pthread -std=gnu99
 
 all: $(TARGETS)
 
-tcp_connect_test: tcp_connect_test.c tcp_connect.c
+client_test: client_test.c client.c
 
 .SUFFIXES : .o .c
 
