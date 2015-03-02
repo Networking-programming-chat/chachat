@@ -12,13 +12,31 @@
 //type ip address(or not), port number.
 int main(int argc, const char * argv[]) {
     int listenfd;
-    socklen_t addrlen;
+    int connfd;
+    socklen_t addrlen, clilen;
+    struct sockaddr *cliaddr=NULL;
     
     if (argc==2)
         listenfd=serv_listen(NULL, argv[1], &addrlen);
-    if (argc==3)
+    else if (argc==3)
         listenfd=serv_listen(argv[1], argv[2], &addrlen);
-    
-    printf("listenfd: %d",listenfd);
+    else {
+        fprintf(stderr, "usage: ./main <host> <port#>\n ");
+        return -1;
         
     }
+    
+    printf("listenfd: %d",listenfd);
+    
+    /*waiting for coming connection*/
+    
+    for (; ; ) {
+        if ((connfd=accept(listenfd,cliaddr, &clilen))<0) {
+            perror("accept error\n");
+            return -1;
+        }
+        
+        //subthread for the connfd
+        //......
+    }
+}
