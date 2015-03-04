@@ -58,9 +58,10 @@ int main(int argc, const char * argv[]) {
             return -1;
         }
         
-        fork new thread for the client
-            //the start_routine for pthread_create()
-            //the argu to the stat_routine is the connfd
+        //fork new thread for the client
+        //the start_routine for pthread_create()
+        //the argu to the stat_routine3 is the connfd
+        pthread_create(thread,stat_routine3,connfd);
         
     }
 }
@@ -115,19 +116,33 @@ int stat_routine2(int connfd2){
 }
 
 
-int stat_routine(int connfd){
+int stat_routine3(int connfd){
     
+    char *client_id;
+    char *nick_name;
+    
+    for(){
+        
+        //read the nick name the client sends
+        read(connfd,nick_name,niklen);
+        
+        check database if the nick name ready exists
+        if(the nick_name ready exits){
+            write to client nick_name exists
+        }
+        
+        if (the nick_name doen't exit) {
+            break;
+        }
+
+    }
     
     //generate the id and send it to the client
     //need allocate id protocol
-    allocate_id(connfd);
-    
-    //read from the client
-    //need client information protocol
-    read(connfd,buffer,size);
+    client_id=allocate_id(connfd);
     
     //update the database
-    insert_db();
+    insert_db(client_id,nick_name);
     
     int i=1;
     while i is less a new server numbers
