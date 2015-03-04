@@ -8,63 +8,16 @@
 
 #include <stdio.h>
 #include "serv.h"
+#include "db.h"
+
 #include <pthread.h> //thread
 #include <unistd.h> //read
 
-//type ip address(or not), port number.
-int main(int argc, const char * argv[]) {
-    int listenfd;
-    int connfd;
-    socklen_t addrlen, clilen;
-    struct sockaddr *cliaddr=NULL;
-    
-    // for database
-    sqlite3 *db;
-    
-    //under discuss when to connect to servers??
-    
-    //stat_routine for thread1 is stat_routine1();
-    //argu to the stat_routine1 is connfd1
-     connfd1=connect to server2;
-    pthread_create(thread1,stat_routine1,connfd1);
-    
-    //stat_routine for thread1 is stat_routine1();
-    //argu to the stat_routine1 is connfd1
-    connfd2=connect to server3;
-    pthread_create(thread2,stat_routine2,connfd2);
-    
-    
-    //open listenfd for clients
-    if (argc==2)
-        listenfd=serv_listen(NULL, argv[1], &addrlen);
-    else if (argc==3)
-        listenfd=serv_listen(argv[1], argv[2], &addrlen);
-    else {
-        fprintf(stderr, "usage: ./main <host> <port#>\n ");
-        return -1;
-        
-    }
-    printf("listenfd: %d",listenfd);
-    
-    //Initial a database and the table
-    //need Jussi help
-    initial_db(db);
-    
-    /*waiting for coming connection*/
-    
-    for (; ; ) {
-        if ((connfd=accept(listenfd,cliaddr, &clilen))<0) {
-            perror("accept error\n");
-            return -1;
-        }
-        
-        //fork new thread for the client
-        //the start_routine for pthread_create()
-        //the argu to the stat_routine3 is the connfd
-        pthread_create(thread,stat_routine3,connfd);
-        
-    }
-}
+typedef struct {
+    pthread_t thread_id;
+    int socketfd;
+} thread_s;
+
 
 int stat_routine1(int connfd1){
     
@@ -178,3 +131,63 @@ int stat_routine3(int connfd){
     }
 
 }
+            
+// !!!: Main method should be last so we don't need to forward declare other methods used by it
+            
+//type ip address(or not), port number.
+int main(int argc, const char * argv[]) {
+    int listenfd;
+    int connfd;
+    socklen_t addrlen, clilen;
+    struct sockaddr *cliaddr=NULL;
+                
+    // for database
+    sqlite3 *db;
+                
+    //under discuss when to connect to servers??
+                
+    //stat_routine for thread1 is stat_routine1();
+    //argu to the stat_routine1 is connfd1
+    connfd1=connect to server2;
+    pthread_create(thread1,stat_routine1,connfd1);
+                
+    //stat_routine for thread1 is stat_routine1();
+    //argu to the stat_routine1 is connfd1
+    connfd2=connect to server3;
+    pthread_create(thread2,stat_routine2,connfd2);
+                
+                
+    //open listenfd for clients
+    if (argc==2)
+        listenfd=serv_listen(NULL, argv[1], &addrlen);
+    else if (argc==3)
+        listenfd=serv_listen(argv[1], argv[2], &addrlen);
+    else {
+        fprintf(stderr, "usage: ./main <host> <port#>\n ");
+        return -1;
+        
+    }
+    printf("listenfd: %d",listenfd);
+                
+    //Initial a database and the table
+    //need Jussi help
+    init_db(db);
+                
+    /*waiting for coming connection*/
+                
+    for (; ; ) {
+        if ((connfd=accept(listenfd,cliaddr, &clilen))<0) {
+            perror("accept error\n");
+            return -1;
+        }
+                    
+        //fork new thread for the client
+        //the start_routine for pthread_create()
+        //the argu to the stat_routine3 is the connfd
+        pthread_create(thread,stat_routine3,connfd);
+                    
+    }
+                
+    // TODO: join threads when they close to save resources
+}
+            
