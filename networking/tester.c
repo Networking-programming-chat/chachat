@@ -24,8 +24,11 @@ unsigned char *SHA1(const unsigned char *d, unsigned long n, unsigned char *md);
 //cuid.len = SHA_DIGEST_LENGTH
  
  
-void generate_cuid(const unsigned char* str, unsigned char* cuid){
-	SHA1(str, sizeof(str) - 1, cuid);
+char* allocate_id(int fd){
+	char cuid[20];
+	cuid = SHA1(str, sizeof(str) - 1, cuid);
+	write_to_db(fd, cuid, db);
+	return cuid;
 }
 
 

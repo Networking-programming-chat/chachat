@@ -1,9 +1,18 @@
-Client connect to server:
+Client connect to server, one thread:
  
-client->DNS server, domain name resolution to get the ip address of the server.
-client->server, client connects to the server, server allocates an unique ID for the client and add client information to the database on server side.
-server->client, the server sends REPLY back to the client. For example, "CONNECT SUCCESSFUL" or "CONNECT FAIL"
-server->server, synchronize the database between servers.
+1. client->DNS server, domain name resolution to get the ip address of the server.
+
+2. client->server, client sends its nickname to the server.
+
+3. client->server, server allocates an unique ID for the client and add client information to the database on server side.
+
+3. server->client, if the nick is in use, server sends the client an ERROR, and disconnects.
+
+4. server->server, synchronize the database between servers.
+
+5. server: waits for normal message headers.
+
+
  
 Client sends message:
  

@@ -14,21 +14,15 @@ typedef struct{
 	char* nickname;			//user specified screen name. 1 byte per char or something.
 }Clienthello;
 
-//the main msgheader, recipient field, sender field, plus the message length, aka. bytes to read after.
+//the universal msgheader, firstbyte sets action, recipient field, sender field, plus the message length, aka. bytes to read after.
 typedef struct{
+	char firstbyte;				//0x00 == normal message, 0x01 == channel, 0x02 == command!, 0x03 == something else
 	uint16_t msglen;			//truncate messages to fit 16bit ~65k chars.
 	char* recipient_id;			//server-generated, SHA1 of the nick specified
 	char* sender_id;			//server-generated, SHA1 of the nick specified
-}Msgheader;					//struct size: 20+20+2 bytes = 42 bytes.
+}Msgheader;					//struct size: 20+20+2+1 bytes = 43 bytes.
 
-
-typedef struct{
-	char sender_id;			//server-generated, or user specified. Handle collisions.
-	uint16_t msglen;		//truncate messages to fit 16bit 65k chars.
-}S2cHeader;
-
-
-//fill a Msgheader from 42 bytes string; return said header pointer; second argument is the storage location;
+//fill a Msgheader from 43 bytes string; return said header pointer; second argument is the storage location;
 Msgheader* parse_hdr(const char *str, Msgheader *n);
 
 //read a messagefrom socket, returns pointer to said string;
