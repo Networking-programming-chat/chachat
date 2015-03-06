@@ -9,10 +9,7 @@
 
 #define MAX_NICKLEN 13	//weird and arbitrary, need comments
 
-//client sends this as the first thing after connect, perhaps optional
-typedef struct{
-	char* nickname;			//user specified screen name. 1 byte per char or something.
-}Clienthello;
+//client sends NICKNAME as the first thing after connect
 
 //the universal msgheader, firstbyte sets action, recipient field, sender field, plus the message length, aka. bytes to read after.
 typedef struct{
