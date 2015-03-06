@@ -4,9 +4,7 @@ Client connect to server, one thread:
 
 2. client->server, client sends its nickname to the server.
 
-3. client->server, server allocates an unique ID for the client and add client information to the database on server side.
-
-3. server->client, if the nick is in use, server sends the client an ERROR, and disconnects.
+3. server check the database whether the nick is in use. Yes, server sends the client an ERROR, and disconnects. No, server allocates a unique ID to the clients and add client information to the database on server side.
 
 4. server->server, synchronize the database between servers.
 
