@@ -2,10 +2,7 @@
 //  main.c
 //  Chachat_1
 //
-//  Created by Judy on 3/1/15.
-//  Copyright (c) 2015 Judy. All rights reserved.
-//
-
+//  
 #include <stdio.h>
 #include "serv.h"
 #include "db.h"

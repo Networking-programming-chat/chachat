@@ -5,10 +5,14 @@
 #include <strings.h>  //bzero
 #include <netdb.h> // addrinfo
 #include <unistd.h> //close
+#include <arpa/inet.h> //inet_ntop
 
 
- /*This function is borrowed from example*/
-int serv_listen(const char *host, const char *serv, socklen_t *addrlenp){
+
+ /*This function is borrowed from example
+  *Opening an listened fd.
+  */
+int serv_listen(const char *host, const char *serv){
         int listenfd, n;
         const int on = 1;
         struct addrinfo hints, *res, *ressave;
@@ -38,19 +42,56 @@ int serv_listen(const char *host, const char *serv, socklen_t *addrlenp){
         } while ( (res = res->ai_next) != NULL);
 
         if (res == NULL) {        /* errno from final socket() or bind() */
-                fprintf(stderr, "tcp_listen error for %s, %s", host, serv);
-		return -1;
-	}
+            fprintf(stderr, "tcp_listen error for %s, %s", host, serv);
+            return -1;
+        }
 
-        if (listen(listenfd, LISTENQ) < 0) {
+    
+    if (listen(listenfd, LISTENQ) < 0) {
 		perror("listen");
 		return -1;
-	}
+        }
+    
+    printf("The ip address we are using is: ");
+    print_address(res);
+    
+    freeaddrinfo(ressave);
+    
+    return(listenfd);
+}
 
-        if (addrlenp)
-                *addrlenp = res->ai_addrlen;    /* return size of protocol address */
+void print_address(const struct addrinfo *res)//this function is based on lecture example
+{
+    char outbuf[80];
+    struct sockaddr_in *sin = (struct sockaddr_in *)res->ai_addr;
+    struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)res->ai_addr;
+    void *address;
+    
+    if (res->ai_family == AF_INET)
+        address = &(sin->sin_addr);
+    else if (res->ai_family == AF_INET6)
+        address = &(sin6->sin6_addr);
+    else {
+        printf("Unknown address\n");
+        return;
+    }
+    
+    //struct sockaddr_in *sin = (struct sockaddr_in *)res->ai_addr;
+    const char *ret = inet_ntop(res->ai_family, address,
+                                outbuf, sizeof(outbuf));
+    printf("%s\n",ret);
+}
 
-        freeaddrinfo(ressave);
-
-        return(listenfd);
+int read_nickname(int socket){
+    ssize_t n1;
+    Clienthello clienname;
+    
+    if ((n1=read(socket,&clienname, sizeof(Clienthello)))<0) {
+        printf("read client name error\n");
+        return -1;
+    }
+    
+    printf("%s\n",clienname.nickname);
+    
+    return 0;
 }
