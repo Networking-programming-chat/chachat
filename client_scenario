@@ -2,9 +2,10 @@ Client connect to server, one thread:
  
 1. client->DNS server, domain name resolution to get the ip address of the server.
 
-2. client->server, client sends its nickname to the server.
+2. client->server, client sends its nickname to the server not more than 10 characters long.
 
-3. server check the database whether the nick is in use. Yes, server sends the client an ERROR, and disconnects. No, server allocates a unique ID to the clients and add client information to the database on server side.
+3. server check the database whether the nick is in use. Yes, server sends the client a msg to choose another nick instead,
+and after 3 trials, connection will be terminated. No, server allocates a unique ID to the clients and add client information to the database on server side.
 
 4. server->server, synchronize the database between servers.
 
@@ -13,7 +14,18 @@ Client connect to server, one thread:
 
  
 Client sends message:
- 
-client join a channel: sends /join #channel message to the server. The server update the database and update its channel information. And the servers synchronize the database between server.  client sends P2P message: through the server it connects. The server parses the message and forward the message based on its "routing table" to the destination server. And each server has a unique identifier. The destination server checks if the destination client connects to it and whether it is in the same channel. If yes, sends the message to the destination client. 
 
-client sends "broadcast" message to all people in the channel: the server check the client's channel, and finds all other clients who in the same channel. Forwards the message to their servers.
+client chat privately: send /chat @nick (existing nickname) 
+The server checks if nick exists already in all servers' dbase , if yes, forward message to nick (a client on the other end),
+if no, send a msg e.g. @nick is not a user yet, return to current window.
+
+client join a channel: sends /join #channel message to the server. 
+The server update the database and update its channel information. 
+And the servers synchronize the database between server.  
+Client sends P2P message: through the server it connects with. 
+The server parses the message and forward the message based on its "routing table" to the destination server. 
+And each server has a unique identifier. The destination server checks if the destination client connects to it and whether it is in the same channel. 
+If yes, sends the message to the destination client. 
+
+client sends "broadcast" message to all people in the channel: the server check the client's channel, and finds all other clients who in the same channel. 
+Forwards the message to their servers.
