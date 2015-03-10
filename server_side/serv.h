@@ -4,11 +4,7 @@
 #include <sys/socket.h>
 
 #define LISTENQ 5
-
-//client sends this as the first thing after connect, perhaps optional
-typedef struct{
-    char nickname[20];//user specified screen name. 1 byte per char or something.
-}Clienthello;
+#define MAX_NICKLEN 13	//maxium length of nickname
 
 /*Establis a listening socket
 *argu: char *host is the string of server's name
@@ -17,10 +13,14 @@ typedef struct{
 */
 int serv_listen(const char *host, const char *serv);
 
-void print_address(const struct addrinfo * res);//print the connected address
+/*print the connected address*/
+void print_address(const struct addrinfo * res);
 
-/*Deal with the comming connection
+/*readn nickname from the client
  */
-int read_nickname(int socket);
+int read_nickname(int socket,char *);
+
+/*add client nickname and id in the database*/
+int client_info(int socket);
 
 #endif

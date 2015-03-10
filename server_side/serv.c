@@ -1,11 +1,10 @@
-
-#include "serv.h"
 #include <stdio.h>
 #include <sys/socket.h> //socket.
 #include <strings.h>  //bzero
 #include <netdb.h> // addrinfo
 #include <unistd.h> //close
 #include <arpa/inet.h> //inet_ntop
+#include "serv.h"
 
 
 
@@ -82,16 +81,43 @@ void print_address(const struct addrinfo *res)//this function is based on lectur
     printf("%s\n",ret);
 }
 
-int read_nickname(int socket){
+
+int client_info(int socket){
+    char nickname[MAX_NICKLEN];
+    char *id;
     ssize_t n1;
-    Clienthello clienname;
+    if(read_nickname(socket,nickname)!=0)
+        return -1;
     
-    if ((n1=read(socket,&clienname, sizeof(Clienthello)))<0) {
+   // from file of protocol
+  /* ----------id=allocate_id();----------*/
+   /*-----in order to test using the below code--------- */
+    char id1[20]={'1','2','3','4','5','6','7','8','9'};
+    id=id1;
+    
+    if((n1=write(socket, id, strlen(id)))<0){
+        perror("write id to client error\n");
+        return -1;
+    }
+    else printf("write id to client success\n");
+    
+    return 0;
+}
+
+int read_nickname(int socket,char *nickname){
+    ssize_t n1;
+    
+    bzero(nickname, sizeof(nickname));
+    if ((n1=read(socket,nickname, sizeof(nickname)))<0) {
         printf("read client name error\n");
         return -1;
     }
     
-    printf("%s\n",clienname.nickname);
+    printf("%s\n",nickname);
+    
+    /*check if the nickname is already used*/
+    /*-------need to synchronize with the database part---------*/
+    /*------------------check the database---------------------*/
     
     return 0;
 }
