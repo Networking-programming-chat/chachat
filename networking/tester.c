@@ -38,24 +38,27 @@ int main(int argc, char **argv)
 {
 	int outfd,n;
 	FILE* testifilee;
-	Msgheader lol;
+	Msgheader* lol;
 	
+	lol=malloc(sizeof(Msgheader));
 	//unsigned char cuid1[SHA_DIGEST_LENGTH],cuid2[SHA_DIGEST_LENGTH];
 	uint16_t msgsize;
 	if (argc != 4) {
         fprintf(stderr, "usage: ./tester [user1] [user2] message\n");
         return 1;
     }
-	memset(&lol, 0, HDRSIZE);
+	
+	//memset(&lol, 0x30, sizeof(Msgheader));
+	
 	msgsize=strlen(argv[3]);
     //allocate_id((unsigned char*)argv[1],cuid1);
 	//allocate_id((unsigned char*)argv[2],cuid2);
 	
 	
-	lol.msglen=htonl(msgsize);
-	lol.sender_id=argv[1];
-	lol.recipient_id=argv[2];
-	
+	lol->msglen=msgsize;
+	lol->sender_id=argv[1];
+	lol->recipient_id=argv[2];
+
 	printf("trying to open a file!\n");
 	testifilee=fopen("written.txt", "w");
     outfd=fileno(testifilee);
@@ -63,8 +66,9 @@ int main(int argc, char **argv)
 		perror("lold\n");
         return 1;
 	}
+	
 	n=pass_message(outfd, argv[3], lol);
 	printf("msglen was %d bytes\n", n);
-	
+	free(lol);
 	return 0;
 }

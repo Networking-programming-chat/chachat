@@ -32,7 +32,7 @@ void free_hdr(Msgheader *hdr)
 	free(hdr);
 }
 
-//give it a header, and a buffer[42]. returns the buffer filled, ready for transmission.
+//give it a header, and a buffer[HDRSIZE]. returns the buffer filled, ready for transmission.
 char* serialize_hdr(char* buffer, Msgheader* hdr)
 {
 	uint16_t tmp = htonl(hdr->msglen);
@@ -77,31 +77,25 @@ int read_message(int fd, char * buffer, int bufsize, Msgheader *hdr){
 //writes a normal chat message to socket, returns pointer to said string; requires set sender_id and recipient_id;
 //header and message can be reused;
 //RETURN VALUE: message length on succes, -1 on error
-int pass_message(int fd, const char * message, Msgheader hdr){
+int pass_message(int fd, const char * message, Msgheader* hdr){
 	
 	int n,msgsize;
-	char* msg;
 	char hdrbuf[HDRSIZE];
 	Msgheader sendme;
 		
 	memset(&sendme, 0, sizeof(Msgheader));
-	
-	
-	//testing variables only;
-	msg = malloc(120*sizeof(char));
-	memset(msg, 1, 100);
-	
 	msgsize=strlen(message);
    	printf("the message is actually %d bytes long\n", msgsize);
 
-   	serialize_hdr(hdrbuf, &hdr);
+   	serialize_hdr(hdrbuf, hdr);
 	n = write(fd, (const void*) hdrbuf, HDRSIZE);
     // Check errors
     if (n < 0) {
         perror("write error with Msgheader");
 		return -1;
     }
-	n = write(fd, (const void*) msg, msgsize);
+	printf("writing %s to file\n", message);
+	n = write(fd, (const void*) message, msgsize);
     // Check errors
     if (n < 0) {
         perror("write error with message data");

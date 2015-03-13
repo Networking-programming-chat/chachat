@@ -9,7 +9,7 @@
 
 #define MAX_NICKLEN 20	//weird and arbitrary, need comments
 #define HDRSIZE 43 // use this
-#define HASHLEN 20 // shA-1 digest
+#define MAXMSG 65535 // maximum message length to be sent around
 
 
 //client sends NICKNAME as the first thing after connect
@@ -35,6 +35,6 @@ char* serialize_hdr(char* buffer, Msgheader* hdr);
 int read_message(int fd, char * buffer, int bufsize, Msgheader *hdr);
 
 //writes a normal chat message to socket, returns pointer to said string;
-int pass_message(int fd, const char * message, Msgheader hdr);
+int pass_message(int fd, const char * message, Msgheader* hdr);
 
 #endif
