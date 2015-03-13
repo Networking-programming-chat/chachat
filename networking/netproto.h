@@ -8,6 +8,8 @@
 #include <errno.h>		//check this for errors
 
 #define MAX_NICKLEN 13	//weird and arbitrary, need comments
+#define HDRSIZE 42 // use this
+#define HDRSIZE 20 // shA-1 digest
 
 //client sends NICKNAME as the first thing after connect
 
@@ -20,12 +22,16 @@ typedef struct{
 }Msgheader;					//struct size: 20+20+2+1 bytes = 43 bytes.
 
 //fill a Msgheader from 43 bytes string; return said header pointer; second argument is the storage location;
-Msgheader* parse_hdr(const char *str, Msgheader *n);
+Msgheader* create_hdr(const char *str);
+
+void free_hdr(Msgheader *hdr);
+
+char* serialize_hdr(char* buffer, Msgheader* n);
 
 //read a messagefrom socket, returns pointer to said string;
-char* read_message(int fd, char * buffer, int bufsize, Msgheader *n);
+char* read_message(int fd, char * buffer, int bufsize, Msgheader *hdr);
 
 //writes a normal chat message to socket, returns pointer to said string;
-char* pass_message(int fd, const char * buffer, int msglen);
+int pass_message(int fd, const char * message, Msgheader *hdr);
 
 #endif
