@@ -73,6 +73,7 @@ int client(const char *servName, const char *servPort){
     } else {
         printf("connect to server success\n");
     }
+    print_address(res);
     
     freeaddrinfo(ressave);
     
