@@ -20,7 +20,8 @@ void print_address(const struct addrinfo * res);
  */
 int read_nickname(int socket,char *);
 
-/*add client nickname and id in the database*/
-int client_info(int socket);
+/*add client nickname in the database*/
+int client_nick(int socket);
+
 
 #endif
