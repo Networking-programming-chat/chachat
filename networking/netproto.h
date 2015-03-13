@@ -32,7 +32,7 @@ void free_hdr(Msgheader *hdr);
 char* serialize_hdr(char* buffer, Msgheader* hdr);
 
 //read a messagefrom socket, returns pointer to said string;
-char* read_message(int fd, char * buffer, int bufsize, Msgheader *hdr);
+int read_message(int fd, char * buffer, int bufsize, Msgheader *hdr);
 
 //writes a normal chat message to socket, returns pointer to said string;
 int pass_message(int fd, const char * message, Msgheader *hdr);
