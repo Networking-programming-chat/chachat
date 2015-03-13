@@ -92,7 +92,7 @@ int pass_message(int fd, const char * message, Msgheader hdr){
 	memset(msg, 1, 100);
 	
 	msgsize=strlen(message);
-   	printf("themessage is actually %d bytes long\n", msgsize);
+   	printf("the message is actually %d bytes long\n", msgsize);
 
    	serialize_hdr(hdrbuf, &hdr);
 	n = write(fd, (const void*) hdrbuf, HDRSIZE);

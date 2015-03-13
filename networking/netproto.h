@@ -17,7 +17,7 @@
 //the universal msgheader, firstbyte sets action, recipient field, sender field, plus the message length, aka. bytes to read after.
 typedef struct{
 	char firstbyte;				//0x00 == normal message, 0x01 == channel, 0x02 == command!, 0x03 == something else
-	uint32_t msglen;			//truncate messages to fit 16bit ~65k chars.
+	uint16_t msglen;			//truncate messages to fit 16bit ~65k chars.
 	char* recipient_id;			//server-generated, SHA1 of the nick specified
 	char* sender_id;			//server-generated, SHA1 of the nick specified
 }Msgheader;					//struct size: 20+20+2+1 bytes = MAX_NICKLEN bytes.

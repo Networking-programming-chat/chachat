@@ -58,11 +58,12 @@ int main(int argc, char **argv)
 	
 	printf("trying to open a file!\n");
 	testifilee=fopen("written.txt", "w");
-    if(!testifilee){
+    outfd=fileno(testifilee);
+	if(!testifilee){
 		perror("lold\n");
         return 1;
 	}
-	n=pass_message((int)testifilee, argv[3], lol);
+	n=pass_message(outfd, argv[3], lol);
 	printf("msglen was %d bytes\n", n);
 	
 	return 0;
