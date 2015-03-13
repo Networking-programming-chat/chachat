@@ -17,13 +17,13 @@
 //the universal msgheader, firstbyte sets action, recipient field, sender field, plus the message length, aka. bytes to read after.
 typedef struct{
 	char firstbyte;				//0x00 == normal message, 0x01 == channel, 0x02 == command!, 0x03 == something else
-	uint32_t msglen;			//truncate messages to fit 16bit ~65k chars.
+	uint16_t msglen;			//truncate messages to fit 16bit ~65k chars.
 	char* recipient_id;			//server-generated, SHA1 of the nick specified
 	char* sender_id;			//server-generated, SHA1 of the nick specified
 }Msgheader;					//struct size: 20+20+2+1 bytes = MAX_NICKLEN bytes.
 
 //fill a Msgheader from HDRSIZE bytes string; return said header pointer; second argument is the storage location;
-Msgheader* buffer_to_hdr(const char *str);
+Msgheader* buffer_to_hdr(char *str);
 
 //frees the allocated memory of a header
 void free_hdr(Msgheader *hdr);
@@ -32,9 +32,9 @@ void free_hdr(Msgheader *hdr);
 char* serialize_hdr(char* buffer, Msgheader* hdr);
 
 //read a messagefrom socket, returns pointer to said string;
-char* read_message(int fd, char * buffer, int bufsize, Msgheader *hdr);
+int read_message(int fd, char * buffer, int bufsize, Msgheader *hdr);
 
 //writes a normal chat message to socket, returns pointer to said string;
-int pass_message(int fd, const char * message, Msgheader *hdr);
+int pass_message(int fd, const char * message, Msgheader hdr);
 
 #endif

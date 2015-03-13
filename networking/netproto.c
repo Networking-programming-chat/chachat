@@ -5,20 +5,24 @@
 
 //NULL if fail, sets errno?
 //RETURN VALUE: ptr to Msgheader struct;
-Msgheader* buffer_to_hdr(const char *str)
+Msgheader* buffer_to_hdr(char *str)
 {
+	char firstbyte;
 	uint16_t s_len;
-	char a[20],b[20];
-	Msgheader* n=malloc(sizeof(Msgheader));	
+	char *a,*b;
+	//a[20],b[20];
+	Msgheader* hdr=malloc(HDRSIZE);	
 
-	if ((sscanf(str, "%hu %s %s", &s_len, &a, &b)) < 3){
+	if ((sscanf(str, "%c %hu", &firstbyte, &s_len)) < 2){
 		perror("parse error");
 		return NULL;
 	}
-	n.msglen = ntohl(s_len);
-	n->recipient_id = strdup(a);
-	n->sender_id = strdup(b);
-	return n;
+	a=&str[3];
+	b=&str[23];
+	hdr->msglen = ntohl(s_len);
+	hdr->recipient_id = strndup(a, MAX_NICKLEN);
+	hdr->sender_id = strndup(b, MAX_NICKLEN);
+	return hdr;
 }
 
 void free_hdr(Msgheader *hdr)
@@ -34,8 +38,8 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 	uint16_t tmp = htonl(hdr->msglen);
 	strncpy(buffer, (void*)&hdr->firstbyte, 1); //0
 	strncpy(&buffer[1], (void*)&tmp, 2);//1,2
-	strncpy(&buffer[3], hdr->recipient_id, HASHLEN);//3-22
-	strncpy(&buffer[23], hdr->sender_id, HASHLEN);//23-42
+	strncpy(&buffer[3], hdr->recipient_id, MAX_NICKLEN);//3-22
+	strncpy(&buffer[23], hdr->sender_id, MAX_NICKLEN);//23-42
 	return buffer;
 }
 
@@ -45,6 +49,7 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 int read_message(int fd, char * buffer, int bufsize, Msgheader *hdr){
 	int totbytes=0,n=0;
 	char hdrbuf[HDRSIZE];
+	
 	//reading header;
 	while ( (n = read(fd, &hdrbuf[totbytes], HDRSIZE)) > 0) {
 		totbytes += n;
@@ -54,7 +59,7 @@ int read_message(int fd, char * buffer, int bufsize, Msgheader *hdr){
         perror("hdr_read error");
 		return -1;
     }
-	hdr = create_hdr(hdrbuf);
+	hdr = buffer_to_hdr(hdrbuf);
 	
 	//read msg; msglen bytes;
 	totbytes=0;n=0;
@@ -72,7 +77,7 @@ int read_message(int fd, char * buffer, int bufsize, Msgheader *hdr){
 //writes a normal chat message to socket, returns pointer to said string; requires set sender_id and recipient_id;
 //header and message can be reused;
 //RETURN VALUE: message length on succes, -1 on error
-int pass_message(int fd, const char * message, Msgheader *hdr){
+int pass_message(int fd, const char * message, Msgheader hdr){
 	
 	int n,msgsize;
 	char* msg;
@@ -87,9 +92,9 @@ int pass_message(int fd, const char * message, Msgheader *hdr){
 	memset(msg, 1, 100);
 	
 	msgsize=strlen(message);
-   	printf("themessage is actually %d bytes long\n", msgsize);
+   	printf("the message is actually %d bytes long\n", msgsize);
 
-   	serialize_hdr(hdrbuf, hdr);
+   	serialize_hdr(hdrbuf, &hdr);
 	n = write(fd, (const void*) hdrbuf, HDRSIZE);
     // Check errors
     if (n < 0) {
