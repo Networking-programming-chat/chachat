@@ -1,5 +1,5 @@
 //
-//tcp_connect function:
+//client_connect function:
 // create a socket
 // connection to the server
 //
@@ -14,27 +14,6 @@
 #include <netdb.h> // addrinfo
 #include <unistd.h> //close
 
-void print_address(const struct addrinfo *res)//this function is based on lecture example
-{
-    char outbuf[80];
-    struct sockaddr_in *sin = (struct sockaddr_in *)res->ai_addr;
-    struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)res->ai_addr;
-    void *address;
-    
-    if (res->ai_family == AF_INET)
-        address = &(sin->sin_addr);
-    else if (res->ai_family == AF_INET6)
-        address = &(sin6->sin6_addr);
-    else {
-        printf("Unknown address\n");
-        return;
-    }
-    
-    //struct sockaddr_in *sin = (struct sockaddr_in *)res->ai_addr;
-    const char *ret = inet_ntop(res->ai_family, address,
-                                outbuf, sizeof(outbuf));
-    printf("%s\n",ret);
-}
 
 int client(const char *servName, const char *servPort){
     int n,sockfd;
