@@ -82,24 +82,14 @@ void print_address(const struct addrinfo *res)//this function is based on lectur
 }
 
 
-int client_info(int socket){
+int client_nick(int socket){
     char nickname[MAX_NICKLEN];
-    char *id;
-    ssize_t n1;
     if(read_nickname(socket,nickname)!=0)
         return -1;
     
-   // from file of protocol
-  /* ----------id=allocate_id();----------*/
-   /*-----in order to test using the below code--------- */
-    char id1[20]={'1','2','3','4','5','6','7','8','9'};
-    id=id1;
-    
-    if((n1=write(socket, id, strlen(id)))<0){
-        perror("write id to client error\n");
-        return -1;
-    }
-    else printf("write id to client success\n");
+    /*---check if the nickname is already used-----*/
+    /*----The nickname is stored in char nickname[]------*/
+    /*--If already used, return 1, if not, return 0*/
     
     return 0;
 }
@@ -114,10 +104,6 @@ int read_nickname(int socket,char *nickname){
     }
     
     printf("%s\n",nickname);
-    
-    /*check if the nickname is already used*/
-    /*-------need to synchronize with the database part---------*/
-    /*------------------check the database---------------------*/
     
     return 0;
 }
