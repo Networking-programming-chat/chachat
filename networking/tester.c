@@ -60,8 +60,9 @@ int main(int argc, char **argv)
 	lol->recipient_id=argv[2];
 
 	printf("trying to open a file!\n");
-	testifilee=fopen("written.txt", "w");
+	testifilee=fopen("header.txt", "w");
     outfd=fileno(testifilee);
+	
 	if(!testifilee){
 		perror("lold\n");
         return 1;

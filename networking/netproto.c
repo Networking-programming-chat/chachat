@@ -63,7 +63,7 @@ int read_message(int fd, char * buffer, Msgheader *hdr){
 	
 	//read msg; msglen bytes;
 	totbytes=0;n=0;
-	while ( (n = read(fd, &buffer[totbytes], 65535)) > 0) {
+	while ( (n = read(fd, &buffer[totbytes], MAXMSG)) > 0) {
 		totbytes += n;
 		if (totbytes > hdr->msglen) break;
 	}
@@ -85,8 +85,10 @@ int pass_message(int fd, const char * message, Msgheader* hdr){
 		
 	memset(&sendme, 0, sizeof(Msgheader));
 	msgsize=strlen(message);
+	if(msgsize>MAXMSG) msgsize=MAXMSG;
    	printf("the message is actually %d bytes long\n", msgsize);
 
+	//serialize does the byteorders n stuffs.
    	serialize_hdr(hdrbuf, hdr);
 	n = write(fd, (const void*) hdrbuf, HDRSIZE);
     // Check errors
@@ -95,12 +97,11 @@ int pass_message(int fd, const char * message, Msgheader* hdr){
 		return -1;
     }
 	printf("writing %s to file\n", message);
-	n = write(fd, (const void*) message, msgsize);
+	n = write(fd, message, msgsize);
     // Check errors
     if (n < 0) {
         perror("write error with message data");
 		return -1;
     }
 	return n;
-	
 }
