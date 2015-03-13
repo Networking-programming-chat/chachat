@@ -23,7 +23,7 @@ typedef struct{
 }Msgheader;					//struct size: 20+20+2+1 bytes = MAX_NICKLEN bytes.
 
 //fill a Msgheader from HDRSIZE bytes string; return said header pointer; second argument is the storage location;
-Msgheader* buffer_to_hdr(const char *str);
+Msgheader* buffer_to_hdr(char *str);
 
 //frees the allocated memory of a header
 void free_hdr(Msgheader *hdr);
@@ -35,6 +35,6 @@ char* serialize_hdr(char* buffer, Msgheader* hdr);
 int read_message(int fd, char * buffer, int bufsize, Msgheader *hdr);
 
 //writes a normal chat message to socket, returns pointer to said string;
-int pass_message(int fd, const char * message, Msgheader *hdr);
+int pass_message(int fd, const char * message, Msgheader hdr);
 
 #endif
