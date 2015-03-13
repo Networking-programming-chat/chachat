@@ -5,7 +5,7 @@
 
 //NULL if fail, sets errno?
 //RETURN VALUE: ptr to Msgheader struct;
-Msgheader* create_hdr(const char *str)
+Msgheader* buffer_to_hdr(const char *str)
 {
 	uint16_t s_len;
 	char a[20],b[20];
@@ -42,7 +42,7 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 
 //reads messages from socket; thread doesnt know the buffer size needed. Less memory fragmentation? reserve 65k or such :D stack overflow? store header to n;
 //RETURN VALUE: pointer to message string;
-char* read_message(int fd, char * buffer, int bufsize, Msgheader *hdr){
+int read_message(int fd, char * buffer, int bufsize, Msgheader *hdr){
 	int totbytes=0,n=0;
 	char hdrbuf[HDRSIZE];
 	//reading header;
@@ -52,7 +52,7 @@ char* read_message(int fd, char * buffer, int bufsize, Msgheader *hdr){
 	}
 	if (n < 0) {
         perror("hdr_read error");
-		return NULL;
+		return -1;
     }
 	hdr = create_hdr(hdrbuf);
 	
@@ -64,9 +64,9 @@ char* read_message(int fd, char * buffer, int bufsize, Msgheader *hdr){
 	}
 	if (n < 0) {
         perror("msgread error");
-		return NULL;
+		return -1;
     }
-	return buffer;
+	return n;
 }
 
 //writes a normal chat message to socket, returns pointer to said string; requires set sender_id and recipient_id;
@@ -81,8 +81,11 @@ int pass_message(int fd, const char * message, Msgheader *hdr){
 		
 	memset(&sendme, 0, sizeof(Msgheader));
 	
+	
+	//testing variables only;
 	msg = malloc(120*sizeof(char));
 	memset(msg, 1, 100);
+	
 	msgsize=strlen(message);
    	printf("themessage is actually %d bytes long\n", msgsize);
 

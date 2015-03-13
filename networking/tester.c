@@ -8,7 +8,7 @@
 #include <unistd.h>      // read, write,..
 #include "netproto.h"
 #include <stdlib.h>
-#include <openssl/sha.h>
+//#include <openssl/sha.h>
 #include <sys/stat.h>		//open
 #include <fcntl.h>			//open
 
@@ -22,11 +22,13 @@ unsigned char *SHA1(const unsigned char *d, unsigned long n, unsigned char *md);
  
 //cuid = chachat user ID
 //cuid.len = SHA_DIGEST_LENGTH
+int write_to_db(int fd, char cuid, void * db){
+	return 0;
+}
  
- 
-char* allocate_id(int fd){
-	char cuid[20];
-	cuid = SHA1(str, sizeof(str) - 1, cuid);
+char* allocate_id(int fd, char* str){
+	char cuid[SHA_DIGEST_LENGTH];
+	//cuid = SHA1(str, sizeof(str) - 1, cuid);
 	write_to_db(fd, cuid, db);
 	return cuid;
 }
@@ -46,8 +48,8 @@ int main(int argc, char **argv)
 	
 	memset(&lol, 0, sizeof(Msgheader));
 	msgsize=strlen(argv[3]);
-    generate_cuid((unsigned char*)argv[1],cuid1);
-	generate_cuid((unsigned char*)argv[2],cuid2);
+    //allocate_id((unsigned char*)argv[1],cuid1);
+	//allocate_id((unsigned char*)argv[2],cuid2);
 	
 	
 	lol.msglen=htonl(msgsize);
