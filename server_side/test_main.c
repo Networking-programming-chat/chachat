@@ -1,20 +1,26 @@
 //
 //  main.c
-//  Chachat_1
+//  chachat1
 //
-//  
+//  Created by Judy on 3/13/15.
+//  Copyright (c) 2015 Judy. All rights reserved.
+//
+
 #include <stdio.h>
 #include "serv.h"
 #include <unistd.h> //read
 
-            
+
 //type ip address(or not), port number.
 int main(int argc, const char * argv[]) {
     int listenfd;
     int connfd;
     socklen_t clilen;
     struct sockaddr *cliaddr=NULL;
-
+    
+    char *mesbuff;
+    Msgheader *mesheader;
+    int len=50;
     
     //open listenfd for clients
     if (argc==2)
@@ -27,18 +33,33 @@ int main(int argc, const char * argv[]) {
         
     }
     printf("listenfd: %d\n",listenfd);
-   
+    
     /*waiting for coming connection*/
-                
+    
+    
+    
+    if ((connfd=accept(listenfd,cliaddr, &clilen))<0) {
+        perror("accept error\n");
+        return -1;
+    }
+    client_nick(connfd);
+        
+    
     for (; ; ) {
-        if ((connfd=accept(listenfd,cliaddr, &clilen))<0) {
-            perror("accept error\n");
+        if(read_message(connfd,mesbuff,len,mesheader)<0)
             return -1;
+       
+        if (mesheader->firstbyte=='0') {//client sends normal message
+            normalMessageHandle(mesbuff,mesheader);
         }
         
-         client_nick(connfd);
+        if (mesheader->firstbyte=='2') {//client sends command
+            commandMessageHandle(mesbuff,mesheader);
+        }
+        
+        
         
     }
     
 }
-            
+
