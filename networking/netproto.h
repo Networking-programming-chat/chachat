@@ -9,7 +9,7 @@
 
 #define MAX_NICKLEN 13	//weird and arbitrary, need comments
 #define HDRSIZE 42 // use this
-#define HDRSIZE 20 // shA-1 digest
+#define HASHLEN 20 // shA-1 digest
 
 //client sends NICKNAME as the first thing after connect
 

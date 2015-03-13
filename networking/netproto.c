@@ -23,19 +23,19 @@ Msgheader* create_hdr(const char *str)
 
 void free_hdr(Msgheader *hdr)
 {
-	free(hdr.recipient_id);
-	free(hdr.sender_id);
+	free(hdr->recipient_id);
+	free(hdr->sender_id);
 	free(hdr);
 }
 
 //give it a header, and a buffer[42]. returns the buffer filled, ready for transmission.
 char* serialize_hdr(char* buffer, Msgheader* hdr)
 {
-	size_t hashlen=20;
+	uint16_t tmp = htonl(hdr->msglen);
 	strncpy(buffer, (void*)&hdr->firstbyte, 1); //0
-	strncpy(&buffer[1], (void*)&htonl(hdr->msglen), 2);//1,2
-	strncpy(&buffer[3], hdr->recipient_id, hashlen);//3-22
-	strncpy(&buffer[23], hdr->sender_id, hashlen);//23-42
+	strncpy(&buffer[1], (void*)&tmp, 2);//1,2
+	strncpy(&buffer[3], hdr->recipient_id, HASHLEN);//3-22
+	strncpy(&buffer[23], hdr->sender_id, HASHLEN);//23-42
 	return buffer;
 }
 
