@@ -1,16 +1,23 @@
 Client connect to server, one thread:
  
-1. client->DNS server, domain name resolution to get the ip address of the server.
+1. client->server, establish connection.
 
-2. client->server, client sends its nickname to the server not more than 10 characters long.
+2, If the connection success (check the the return value of connect()), the client prints the rules to the client’s UI screen. 
 
-3. server check the database whether the nick is in use. Yes, server sends the client a msg to choose another nick instead,
+3. client->server, client sends its nickname to the server not more than 20 characters long.
+
+4. server check the database whether the nick is in use. Yes, server sends the client a msg to choose another nick instead,
 and after 3 trials, return to connection window. No, server allocates a unique ID to the clients and add client information to the database on server side.
 
-4. server->server, synchronize the database between servers.
+//Not in this phase 4. server->server, synchronize the database between servers.
 
-5. server: waits for normal message headers.
 
+5. Every time the client parse the UI input. Private message’s format ”/chat @destination messagebody“. Other Command like quit format ”/quit”, “/join channel name”.
+
+   Then the client fills the header Mesghheader. If it is normal message, set the “firstbyte” to ‘0’; If it is command, set the “firstbyte” to ‘2’. And the recipent_id is 20 bytes of 0. The command content (remove the slash) is included in messagebody. And sends it to the server.
+
+
+6. The server read the header. If it is quit command, close the connection and delete the client’s information from the database.
 
  
 Client sends message:

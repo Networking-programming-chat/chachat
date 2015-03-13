@@ -36,7 +36,7 @@ int main(int argc, const char * argv[]) {
             return -1;
         }
         
-        client_info(connfd);
+         client_nick(connfd);
         
     }
     

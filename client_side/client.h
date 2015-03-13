@@ -14,6 +14,11 @@
 //return: the sock desciptor
 int client(const char *servName, const char *servPort);
 
+/*print the connected address
+* support both ipv4 and ipv6
+*/
+void print_address(const struct addrinfo * res);
+
 
 
 #endif

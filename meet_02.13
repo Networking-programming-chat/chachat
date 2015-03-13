@@ -25,7 +25,7 @@ Task8.
 
 Database on server contains following info
 Client Table
-- Client id
+- Client id //not used, delete
 - Client name (nickname)
 - Client's server
 - Channels, in which the client is joined? Or list of joined users in a channel?
