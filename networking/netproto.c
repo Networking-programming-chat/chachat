@@ -46,7 +46,7 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 
 //reads messages from socket; thread doesnt know the buffer size needed. Less memory fragmentation? reserve 65k or such :D stack overflow? store header to n;
 //RETURN VALUE: pointer to message string;
-int read_message(int fd, char * buffer, int bufsize, Msgheader *hdr){
+int read_message(int fd, char * buffer, Msgheader *hdr){
 	int totbytes=0,n=0;
 	char hdrbuf[HDRSIZE];
 	
@@ -63,7 +63,7 @@ int read_message(int fd, char * buffer, int bufsize, Msgheader *hdr){
 	
 	//read msg; msglen bytes;
 	totbytes=0;n=0;
-	while ( (n = read(fd, &buffer[totbytes], bufsize)) > 0) {
+	while ( (n = read(fd, &buffer[totbytes], 65535)) > 0) {
 		totbytes += n;
 		if (totbytes > hdr->msglen) break;
 	}
