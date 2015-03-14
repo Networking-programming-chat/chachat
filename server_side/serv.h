@@ -27,6 +27,6 @@ int client_nick(int socket);
 void normalMessageHandle(char *mesbuff, Msgheader *mesheader);
 
 //Handling client's command message
-void commandMessageHandle(char *mesbuff, Msgheader *mesheader);
+void commandMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
 
 #endif

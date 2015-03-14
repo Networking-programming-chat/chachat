@@ -19,8 +19,7 @@ int main(int argc, const char * argv[]) {
     struct sockaddr *cliaddr=NULL;
     
     char *mesbuff;
-    Msgheader *mesheader;
-    int len=50;
+    Msgheader mesheader;
     
     //open listenfd for clients
     if (argc==2)
@@ -45,21 +44,23 @@ int main(int argc, const char * argv[]) {
     client_nick(connfd);
         
     
-    for (; ; ) {
-        if(read_message(connfd,mesbuff,len,mesheader)<0)
+   // for (; ; ) {
+        if(read_message(connfd,mesbuff,&mesheader)<0)
             return -1;
+        
+        printf("message buffer %s\n",mesbuff);
        
-        if (mesheader->firstbyte=='0') {//client sends normal message
-            normalMessageHandle(mesbuff,mesheader);
+        if (mesheader.firstbyte=='0') {//client sends normal message
+            normalMessageHandle(mesbuff,&mesheader);
         }
         
-        if (mesheader->firstbyte=='2') {//client sends command
-            commandMessageHandle(mesbuff,mesheader);
+        if (mesheader.firstbyte=='2') {//client sends command
+            commandMessageHandle(connfd,mesbuff,&mesheader);
         }
         
         
         
-    }
+   // }
     
 }
 

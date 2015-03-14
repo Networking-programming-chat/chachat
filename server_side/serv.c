@@ -110,20 +110,35 @@ void normalMessageHandle(char *mesbuff, Msgheader *mesheader){
 
     dest=mesheader->recipient_id;
     printf("destination client:%s\n",dest);
-    /*----check database where is the the destination server----*/
+    /*----check database if the destination exists and the server it connected----*/
     /*------given the argument dest, it is a char pointer------*/
+    /*----Write the message to the dest server-----*/
+    /*-----If the dest doesn't exit,return "Destination don't exit"----*/
     
+    //Write the message to the server
     
 }
 
 //Handling client's command message
-void commandMessageHandle(char *mesbuff, Msgheader *mesheader){
+void commandMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){
+    
+    char *from;
+    from=mesheader->sender_id;//source id
     
     if (strncmp(mesbuff, "quit",4)){//quit command
         printf("quit command");
+        
+        /*--------delete client's information in database------*/
+        /*--------The argument is from pointer which is the source--------*/
+        
+        close(connfd);
     }
+    
     if (strncmp(mesbuff, "join",4)) {//joint command
         printf("joint command\n");
+        
+        /*-------------Update the channle information of the client-------------------*/
+        /*---------argument: from (source id), *mesbuff (channel)------*/
     }
     
     

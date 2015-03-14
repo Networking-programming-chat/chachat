@@ -28,7 +28,11 @@ if no, send a msg e.g. @nick is not a user yet, return to current window.
 
 client join a channel: sends /join #channel message to the server. 
 The server update the database and update its channel information. 
-And the servers synchronize the database between server.  
+And the servers synchronize the database between server.
+
+client sends /quit
+The server close the connection and delete the user’s information in database. And send synchronise information to other servers.
+  
 Client sends P2P message: through the server it connects with. 
 The server parses the message and forward the message based on its "routing table" to the destination server. 
 And each server has a unique identifier. The destination server checks if the destination client connects to it and whether it is in the same channel. 
