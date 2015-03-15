@@ -95,7 +95,8 @@ int pass_message(int fd, const char * message, Msgheader* hdr){
 	Msgheader sendme;
 		
 	memset(&sendme, 0, sizeof(Msgheader));
-	msgsize=strlen(message);
+	if(message)	msgsize=strlen(message);
+	else msgsize=0;
 	if(msgsize>MAXMSG) msgsize=MAXMSG;
    	printf("the message is actually %d bytes long\n", msgsize);
 
