@@ -9,7 +9,7 @@
 
 #define MAX_NICKLEN 20	//weird and arbitrary, need comments
 #define HDRSIZE 43 // use this
-#define MAXMSG 65535 // maximum message length to be sent around
+#define MAXMSG 65535 // maximum message length to be sent around 2^16-1 bytes.
 
 
 //client sends NICKNAME as the first thing after connect

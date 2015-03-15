@@ -22,6 +22,17 @@ unsigned char *SHA1(const unsigned char *d, unsigned long n, unsigned char *md);
  
 //cuid = chachat user ID
 //cuid.len = SHA_DIGEST_LENGTH
+int header_readtest(){
+	Msgheader* n;
+	//buffer is in network byte order, only msglen is flipped on my machine. I THINK!
+	char buffer[] = {0x00, 0x12, 0x00, 0x62, 0x62, 0x62, 0x62, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x61, 0x61, 0x61, 0x61, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    
+    n=buffer_to_hdr(buffer);
+	print_hdr(n);
+	free_hdr(n);
+	return 0;
+}
+
 int serverconnect(int sockfd, char* ex_id,  char* serverip){
 	
 	//char serverip[] = "195.148.124.76";
@@ -58,6 +69,8 @@ void hexprinter(char* str,int num){
 	printf("\n");
 }
 
+
+
 int main(int argc, char **argv)
 {
 	int sockfd,n;
@@ -92,7 +105,7 @@ int main(int argc, char **argv)
 	//allocate_id((unsigned char*)argv[2],cuid2);
 	
 	
-	lol->firstbyte=0x02;
+	lol->firstbyte=0x00;
 	lol->msglen=msgsize;
 	lol->sender_id=argv[1];
 	lol->recipient_id=argv[2];
@@ -111,5 +124,6 @@ int main(int argc, char **argv)
 	n=pass_message(sockfd, argv[3], lol);
 	printf("msglen was %d bytes\n", n);
 	free(lol);
+	header_readtest();
 	return 0;
 }

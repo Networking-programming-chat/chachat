@@ -16,30 +16,21 @@ void print_hdr(Msgheader* n){
 
 Msgheader* buffer_to_hdr(char *str)
 {
-	//char firstbyte;
-	//uint16_t s_len;
+	uint16_t* s_len_p;
+	uint16_t s_len;
 	char *a,*b;
-	//a[20],b[20];
+	
 	Msgheader* hdr=malloc(sizeof(Msgheader)); //this sizeof has sizes of nick pointers.
-
-	/* if ((sscanf(str, "%c %hu", &firstbyte, &s_len)) < 2){
-		perror("parse error");
-		return NULL;
-	} */
-	a=&str[3];
-	b=&str[23];
+	s_len_p = (uint16_t*)&str[1];	//parsing messagelength uint16_t from source. bytes [1], [2].
+	s_len = ntohs(*s_len_p);
+	a=&str[3];		//recipient_id
+	b=&str[23];		//sender_id
+	
 	hdr->firstbyte = str[0];
-	hdr->msglen = ntohs((uint16_t)str[1]);
+	hdr->msglen = s_len;
 	hdr->recipient_id = strndup(a, MAX_NICKLEN);
 	hdr->sender_id = strndup(b, MAX_NICKLEN);
 	return hdr;
-}
-
-void free_hdr(Msgheader *hdr)
-{
-	free(hdr->recipient_id);
-	free(hdr->sender_id);
-	free(hdr);
 }
 
 //give it a header, and a buffer[HDRSIZE]. returns the buffer filled, ready for transmission.
@@ -54,6 +45,12 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 	return buffer;
 }
 
+void free_hdr(Msgheader *hdr)
+{
+	free(hdr->recipient_id);
+	free(hdr->sender_id);
+	free(hdr);
+}
 
 //reads messages from socket; thread doesnt know the buffer size needed. Less memory fragmentation? reserve 65k or such :D stack overflow? store header to n;
 //RETURN VALUE: pointer to message string;
