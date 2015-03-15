@@ -18,11 +18,14 @@
 typedef struct{
 	char firstbyte;				//0x00 == normal message, 0x01 == channel, 0x02 == command!, 0x03 == something else
 	uint16_t msglen;			//truncate messages to fit 16bit ~65k chars.
-	char* recipient_id;			//server-generated, SHA1 of the nick specified
-	char* sender_id;			//server-generated, SHA1 of the nick specified
-}Msgheader;					//struct size: 20+20+2+1 bytes = MAX_NICKLEN bytes.
+	char* recipient_id;			//nick specified, "nulled 20byte array"
+	char* sender_id;			//nick specified, "nulled 20byte array"
+}Msgheader;					//struct size: 20+20+2+1 bytes = HDRSIZE bytes.
 
-//fill a Msgheader from HDRSIZE bytes string; return said header pointer; second argument is the storage location;
+//prints one passed msgheader to stdout!;
+void print_hdr(Msgheader* n);
+
+//fill a Msgheader from HDRSIZE bytes string; return said header pointer; argument is the buffer location;
 Msgheader* buffer_to_hdr(char *str);
 
 //frees the allocated memory of a header

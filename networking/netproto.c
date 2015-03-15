@@ -1,25 +1,35 @@
 #include "netproto.h"
 #include <unistd.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 
 //NULL if fail, sets errno?
 //RETURN VALUE: ptr to Msgheader struct;
+void print_hdr(Msgheader* n){
+	printf("----header-----\n");
+	printf("firstbyte set to: 0x%02X\n", n->firstbyte);
+	printf("msglen: ""%"PRIu16"\n", n->msglen);
+	printf("sender: %s\n", n->sender_id);
+	printf("recipient: %s\n\n", n->recipient_id);
+}
+
 Msgheader* buffer_to_hdr(char *str)
 {
-	char firstbyte;
-	uint16_t s_len;
+	//char firstbyte;
+	//uint16_t s_len;
 	char *a,*b;
 	//a[20],b[20];
-	Msgheader* hdr=malloc(HDRSIZE);	
+	Msgheader* hdr=malloc(sizeof(Msgheader)); //this sizeof has sizes of nick pointers.
 
-	if ((sscanf(str, "%c %hu", &firstbyte, &s_len)) < 2){
+	/* if ((sscanf(str, "%c %hu", &firstbyte, &s_len)) < 2){
 		perror("parse error");
 		return NULL;
-	}
+	} */
 	a=&str[3];
 	b=&str[23];
-	hdr->msglen = ntohl(s_len);
+	hdr->firstbyte = str[0];
+	hdr->msglen = ntohs((uint16_t)str[1]);
 	hdr->recipient_id = strndup(a, MAX_NICKLEN);
 	hdr->sender_id = strndup(b, MAX_NICKLEN);
 	return hdr;
@@ -35,9 +45,10 @@ void free_hdr(Msgheader *hdr)
 //give it a header, and a buffer[HDRSIZE]. returns the buffer filled, ready for transmission.
 char* serialize_hdr(char* buffer, Msgheader* hdr)
 {
-	uint16_t tmp = htonl(hdr->msglen);
-	strncpy(buffer, (void*)&hdr->firstbyte, 1); //0
-	strncpy(&buffer[1], (void*)&tmp, 2);//1,2
+	uint16_t tmp = htons(hdr->msglen);
+	printf("tmp: %hu\n", tmp);
+	memset(buffer, hdr->firstbyte, 1);
+	memcpy(&buffer[1], &tmp, 2);//1,2
 	strncpy(&buffer[3], hdr->recipient_id, MAX_NICKLEN);//3-22
 	strncpy(&buffer[23], hdr->sender_id, MAX_NICKLEN);//23-42
 	return buffer;
