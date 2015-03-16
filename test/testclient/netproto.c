@@ -16,13 +16,12 @@ void print_hdr(Msgheader* n){
 	}
 }
 
-Msgheader* buffer_to_hdr(char *str)
+void buffer_to_hdr(char *str, Msgheader* hdr)
 {
 	uint16_t* s_len_p;
 	uint16_t s_len;
 	char *a,*b;
 	
-	Msgheader* hdr=malloc(sizeof(Msgheader)); //this sizeof has sizes of nick pointers.
 	s_len_p = (uint16_t*)&str[1];	//parsing messagelength uint16_t from source. bytes [1], [2].
 	s_len = ntohs(*s_len_p);
 	printf("setting msglen to: %hu\n", s_len);
@@ -33,7 +32,6 @@ Msgheader* buffer_to_hdr(char *str)
 	hdr->msglen = s_len;
 	hdr->recipient_id = strndup(a, MAX_NICKLEN);
 	hdr->sender_id = strndup(b, MAX_NICKLEN);
-	return hdr;
 }
 
 //give it a header, and a buffer[HDRSIZE]. returns the buffer filled, ready for transmission.
@@ -57,32 +55,40 @@ void free_hdr(Msgheader *hdr)
 
 //reads messages from socket; thread doesnt know the buffer size needed. Less memory fragmentation? reserve 65k or such :D stack overflow? store header to n;
 //RETURN VALUE: pointer to message string;
-int read_message(int fd, char * buffer, Msgheader *hdr){
+int read_message(int fd, char * msg_dest, Msgheader *hdr_dest){
 	int totbytes=0,n=0;
-	char hdrbuf[HDRSIZE];
+	char hdrbuf[HDRSIZE],buffer[MAXMSG+1];
 	
+	
+	if(!hdr_dest || !msg_dest){
+		fprintf(stderr, "allocate memory for header/messagebuffer!\n");
+		return -1;
+	}
 	//reading header;
 	while ( (n = read(fd, &hdrbuf[totbytes], HDRSIZE)) > 0) {
 		totbytes += n;
-		if (totbytes > HDRSIZE) break;
+		if (totbytes >= HDRSIZE) break;
 	}
 	if (n < 0) {
         perror("hdr_read error");
 		return -1;
     }
-	hdr = buffer_to_hdr(hdrbuf);
 	
+	buffer_to_hdr(hdrbuf, hdr_dest);
 	//read msg; msglen bytes;
 	totbytes=0;n=0;
-	if(hdr->msglen>MAXMSG) hdr->msglen=MAXMSG;
-	while ( (n = read(fd, &buffer[totbytes], hdr->msglen)) > 0) {
+	if(hdr_dest->msglen>MAXMSG) hdr_dest->msglen=MAXMSG;
+	while ( (n = read(fd, &buffer[totbytes], hdr_dest->msglen)) > 0) {
 		totbytes += n;
-		if (totbytes >= hdr->msglen) break;
+		if (totbytes >= hdr_dest->msglen) break;
 	}
 	if (n < 0) {
         perror("msgread error");
 		return -1;
     }
+	buffer[totbytes]=0;
+	printf("read buffer: %s\n", buffer);
+	strncpy(msg_dest, buffer, hdr_dest->msglen);
 	return n;
 }
 
