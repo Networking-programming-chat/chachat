@@ -94,11 +94,11 @@ int main(int argc, const char * argv[]) {
     char nickname[20]="nickname";
     char recipient[20]="recipient";
     char dest[20]="destination";
-    char *message="quit";
+    char message[]="hello";
     Msgheader header;
     
     header.firstbyte='0';
-    header.msglen=(uint16_t)4;
+    header.msglen=strlen(message);
     header.recipient_id=recipient;
     header.sender_id=dest;
     
@@ -111,7 +111,7 @@ int main(int argc, const char * argv[]) {
         return -1;
     }
     
-    printf("the connected sockfd is: %d\n",socked);
+    //printf("the connected sockfd is: %d\n",socked);
     
     if ((n1=write(socked, nickname, 20))<0) {
         perror("write nickname wrong\n");

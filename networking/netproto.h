@@ -26,7 +26,7 @@ typedef struct{
 void print_hdr(Msgheader* n);
 
 //fill a Msgheader from HDRSIZE bytes string; return said header pointer; argument is the buffer location;
-Msgheader* buffer_to_hdr(char *str);
+void buffer_to_hdr(char *str, Msgheader* hdr);
 
 //frees the allocated memory of a header
 void free_hdr(Msgheader *hdr);
@@ -34,8 +34,8 @@ void free_hdr(Msgheader *hdr);
 //pass in a filled header and an empty buffer to create a transmittable string of length HDRSIZE.
 char* serialize_hdr(char* buffer, Msgheader* hdr);
 
-//read a messagefrom socket, returns pointer to said string;
-int read_message(int fd, char * buffer, Msgheader *hdr);
+//read a message from socket, store message to arg2, header to agr3
+int read_message(int fd, char * msg_dest, Msgheader *hdr_dest);
 
 //writes a normal chat message to socket, returns pointer to said string;
 int pass_message(int fd, const char * message, Msgheader* hdr);

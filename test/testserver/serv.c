@@ -7,9 +7,6 @@
 #include "serv.h"
 
 
-
-
-
  /*This function is borrowed from example
   *Opening an listened fd.
   */
