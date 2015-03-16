@@ -7,11 +7,13 @@
 //NULL if fail, sets errno?
 //RETURN VALUE: ptr to Msgheader struct;
 void print_hdr(Msgheader* n){
+	if(n){
 	printf("----header-----\n");
 	printf("firstbyte set to: 0x%02X\n", n->firstbyte);
 	printf("msglen: ""%"PRIu16"\n", n->msglen);
 	printf("sender: %s\n", n->sender_id);
 	printf("recipient: %s\n\n", n->recipient_id);
+	}
 }
 
 Msgheader* buffer_to_hdr(char *str)
@@ -23,6 +25,7 @@ Msgheader* buffer_to_hdr(char *str)
 	Msgheader* hdr=malloc(sizeof(Msgheader)); //this sizeof has sizes of nick pointers.
 	s_len_p = (uint16_t*)&str[1];	//parsing messagelength uint16_t from source. bytes [1], [2].
 	s_len = ntohs(*s_len_p);
+	printf("setting msglen to: %hu\n", s_len);
 	a=&str[3];		//recipient_id
 	b=&str[23];		//sender_id
 	
@@ -71,9 +74,10 @@ int read_message(int fd, char * buffer, Msgheader *hdr){
 	
 	//read msg; msglen bytes;
 	totbytes=0;n=0;
-	while ( (n = read(fd, &buffer[totbytes], MAXMSG)) > 0) {
+	if(msglen>MAXMSG) msglen=MAXMSG;
+	while ( (n = read(fd, &buffer[totbytes], msglen)) > 0) {
 		totbytes += n;
-		if (totbytes > hdr->msglen) break;
+		if (totbytes >= hdr->msglen) break;
 	}
 	if (n < 0) {
         perror("msgread error");
@@ -105,7 +109,6 @@ int pass_message(int fd, const char * message, Msgheader* hdr){
         perror("write error with Msgheader");
 		return -1;
     }
-	printf("writing %s to file\n", message);
 	n = write(fd, message, msgsize);
     // Check errors
     if (n < 0) {
