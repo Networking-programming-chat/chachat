@@ -19,7 +19,9 @@ int main(int argc, const char * argv[]) {
     struct sockaddr *cliaddr=NULL;
     
     char *mesbuff;
-    Msgheader mesheader;
+    mesbuff=malloc(MAXMSG*sizeof(char)+1);
+    Msgheader *mesheader;
+    mesheader=malloc(sizeof(Msgheader)); //this sizeof has sizes of nick pointers.
     
     //open listenfd for clients
     if (argc==2)
@@ -35,32 +37,35 @@ int main(int argc, const char * argv[]) {
     
     /*waiting for coming connection*/
     
-    
-    
     if ((connfd=accept(listenfd,cliaddr, &clilen))<0) {
         perror("accept error\n");
         return -1;
     }
     client_nick(connfd);
-        
     
-   // for (; ; ) {
-        if(read_message(connfd,mesbuff,&mesheader)<0)
-            return -1;
-        
-        printf("message buffer %s\n",mesbuff);
-       
-        if (mesheader.firstbyte=='0') {//client sends normal message
-            normalMessageHandle(mesbuff,&mesheader);
-        }
-        
-        if (mesheader.firstbyte=='2') {//client sends command
-            commandMessageHandle(connfd,mesbuff,&mesheader);
-        }
-        
-        
+    
+    // for (; ; ) {
+    if(read_message(connfd,mesbuff,mesheader)<0){
+        perror("read_message pox!\n");
+        return -1;
+    }
+    
+    print_hdr(mesheader);
+    
+    if (mesheader->firstbyte=='0') {//client sends normal message
+        normalMessageHandle(mesbuff,mesheader);
+    }
+    
+    if (mesheader->firstbyte=='2') {//client sends command
+        commandMessageHandle(connfd,mesbuff,mesheader);
+    }
+    
         
    // }
+    free(mesbuff);
+    free_hdr(mesheader);
+    return 0;
+
     
 }
 

@@ -2,7 +2,7 @@
 #define COMMON_H
 
 #include <sys/socket.h>
-#include "networking/netproto.h"
+#include "../networking/netproto.h"
 
 #define LISTENQ 5
 
