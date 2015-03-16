@@ -74,8 +74,8 @@ int read_message(int fd, char * buffer, Msgheader *hdr){
 	
 	//read msg; msglen bytes;
 	totbytes=0;n=0;
-	if(msglen>MAXMSG) msglen=MAXMSG;
-	while ( (n = read(fd, &buffer[totbytes], msglen)) > 0) {
+	if(hdr->msglen>MAXMSG) hdr->msglen=MAXMSG;
+	while ( (n = read(fd, &buffer[totbytes], hdr->msglen)) > 0) {
 		totbytes += n;
 		if (totbytes >= hdr->msglen) break;
 	}
