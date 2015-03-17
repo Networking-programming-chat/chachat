@@ -10,7 +10,7 @@ sqlite:
 	ar -cvq libsqlite.a sqlite3.o
 
 ccserv:
-	$(CC) -o ccserv $(CFLAGS) main.c serv.c -L./ -lsqlite
+	$(CC) -o ccserv $(CFLAGS) main.c serv.c -pthread -L./ -lsqlite
 
 cleanobjects:
 	rm -f *.o
