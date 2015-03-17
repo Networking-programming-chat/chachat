@@ -9,7 +9,7 @@
 #include <stdlib.h> // exit()
 #include <string.h>
 
-typedef void (*db_nick_callback)(cc_user*);
+typedef void (*db_user_callback)(cc_user*);
 typedef void (*db_channel_callback)(cc_channel*);
 
 // This module takes care of the db handle
@@ -134,9 +134,9 @@ void close_db()
 // Callback function for reading data
 static int user_callback(void *data, int argc, char **argv, char **azColName){
     int i;
-    db_nick_callback callback;
+    db_user_callback callback;
     
-    callback = (db_nick_callback)data;
+    callback = (db_user_callback)data;
     
     cc_user *user = malloc(sizeof(cc_user));
     
@@ -166,7 +166,7 @@ static int user_callback(void *data, int argc, char **argv, char **azColName){
     return 0;
 }
 
-void get_user_nick(const char *nick, db_nick_callback callback)
+void get_user_nick(const char *nick, db_user_callback callback)
 {
     int status;
     char *errmsg;
@@ -184,7 +184,7 @@ void get_user_nick(const char *nick, db_nick_callback callback)
     }
 }
 
-void get_user_id(int user_id, db_nick_callback callback)
+void get_user_id(int user_id, db_user_callback callback)
 {
     int status;
     char *errmsg;
@@ -202,6 +202,79 @@ void get_user_id(int user_id, db_nick_callback callback)
     }
 }
 
+static int channel_callback(void *data, int argc, char **argv, char **azColName){
+    int i;
+    db_channel_callback callback;
+    
+    callback = (db_channel_callback)data;
+    
+    cc_channel *channel = malloc(sizeof(cc_channel));
+    
+    // Iterate the arguments to show the query results
+    for(i = 0; i < argc; ++i){
+        //printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+        
+        if (strcmp(azColName[i], "id") == 0 && argv[i]) {
+            channel->channel_id = atoi(argv[i]);
+        }
+        else if (strcmp(azColName[i], "name") == 0 && argv[i]) {
+            size_t len = strlen(argv[i]);
+            channel->name_len = len;
+            channel->name = malloc(sizeof(char) * len);
+            strncpy(channel->name, argv[i], len);
+        }
+        else if (strcmp(azColName[i], "topic") == 0 && argv[i]) {
+            size_t len = strlen(argv[i]);
+            channel->topic_len = len;
+            channel->topic = malloc(sizeof(char) * len);
+            strncpy(channel->topic, argv[i], len);
+        }
+    }
+    
+    callback(channel);
+    
+    query_answered = 1;
+    
+    printf("\n");
+    return 0;
+}
+
+
+void get_channel_name(const char *name, db_channel_callback callback)
+{
+    int status;
+    char *errmsg;
+    char query[128];
+    
+    query_answered = 0;
+    
+    // Find the user by nick
+    sprintf(query, "SELECT * FROM channels WHERE name LIKE '%s'", name);
+    status = sqlite3_exec(db_handle, query, channel_callback, (void*)callback, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    if (query_answered == 0) {
+        callback(NULL);
+    }
+}
+
+void get_channel_id(int channel_id, db_channel_callback callback)
+{
+    int status;
+    char *errmsg;
+    char query[128];
+    
+    query_answered = 0;
+    
+    // Find the user by nick
+    sprintf(query, "SELECT * FROM channels WHERE id = %d", channel_id);
+    status = sqlite3_exec(db_handle, query, channel_callback, (void*)callback, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    if (query_answered == 0) {
+        callback(NULL);
+    }
+}
 
 
 

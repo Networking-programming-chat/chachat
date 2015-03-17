@@ -39,6 +39,9 @@ void close_db();                // Will close the db in use
 void get_user_nick(const char *, void(*)(cc_user *));
 void get_user_id(int, void(*)(cc_user *));
 
+void get_channel_name(const char *, void(*)(cc_channel *));
+void get_channel_id(int, void(*)(cc_channel *));
+
 // TODO: what functions do we need
 /*
  Examples:
