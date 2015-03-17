@@ -66,7 +66,6 @@ void free_hdr(Msgheader *hdr)
 {
 	free(hdr->recipient_id);
 	free(hdr->sender_id);
-	free(hdr);
 }
 
 //reads messages from socket; thread doesnt know the buffer size needed. Less memory fragmentation? reserve 65k or such :D stack overflow? store header to n;
