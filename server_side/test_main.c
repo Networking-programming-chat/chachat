@@ -7,6 +7,7 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h> // malloc, free
 #include "serv.h"
 #include <unistd.h> //read
 
@@ -29,7 +30,7 @@ int main(int argc, const char * argv[]) {
     else if (argc==3)
         listenfd=serv_listen(argv[1], argv[2]);
     else {
-        fprintf(stderr, "usage: ./main <host> <port#>\n ");
+        fprintf(stderr, "usage: %s <host> <port#>\n ", argv[0]);
         return -1;
         
     }

@@ -4,6 +4,27 @@
 
 #include "sqlite3.h"
 
+// User and channel structs
+
+typedef struct {
+    int user_id;
+    int server_id;
+    size_t nick_len;
+    char *nick;
+} cc_user ;
+
+typedef struct {
+    int channel_id;
+    size_t name_len;
+    size_t topic_len;
+    char *name;
+    char *topic;
+} cc_channel ;
+
+void free_cc_user(cc_user *user);
+void free_cc_channel(cc_channel *channel);
+
+
 void init_db();                 // Will initialize the db (create if not present and load)
 void init_db2(sqlite3 *db);     // Will initialize the db (create if not present and load)
 

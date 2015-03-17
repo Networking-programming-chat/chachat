@@ -8,11 +8,25 @@
 #include <stdio.h>
 #include <stdlib.h> // exit()
 
-#include "netproto.h" // MAX_NICKLEN
-
 // This module takes care of the db handle
 
 static sqlite3 *db_handle;
+
+
+
+void free_cc_user(cc_user *user)
+{
+    free(user->nick);
+    free(user);
+}
+
+void free_cc_channel(cc_channel *channel)
+{
+    free(channel->name);
+    free(channel->topic);
+    free(channel);
+}
+
 
 // Function to test a condition
 static void checksql (int test, sqlite3 * db, const char * message, ...)
