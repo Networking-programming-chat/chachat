@@ -25,6 +25,10 @@ typedef struct {
 void free_cc_user(cc_user *user);
 void free_cc_channel(cc_channel *channel);
 
+// Test functions for printing data
+void print_user(cc_user* user);
+void print_channel(cc_channel *channel);
+
 
 void init_db();                 // Will initialize the db (create if not present and load)
 void init_db2(sqlite3 *db);     // Will initialize the db (create if not present and load)

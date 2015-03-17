@@ -7,13 +7,17 @@
 
 #include <stdio.h>
 #include <stdlib.h> // exit()
+#include <string.h>
 
 typedef void (*db_nick_callback)(cc_user*);
+typedef void (*db_channel_callback)(cc_channel*);
 
 // This module takes care of the db handle
 
 static sqlite3 *db_handle;
 
+// TODO: think about threading
+static int query_answered;
 
 
 void free_cc_user(cc_user *user)
@@ -29,6 +33,15 @@ void free_cc_channel(cc_channel *channel)
     free(channel);
 }
 
+void print_user(cc_user* user)
+{
+    printf("User data:\nid: %d\nnick: %s\nserverid: %d\n", user->user_id, user->nick, user->server_id);
+}
+
+void print_channel(cc_channel *channel)
+{
+    printf("Channel data:\nid: %d\nname: %s\ntopic: %s\n", channel->channel_id, channel->name, channel->topic);
+}
 
 // Function to test a condition
 static void checksql (int test, sqlite3 * db, const char * message, ...)
@@ -119,16 +132,35 @@ void close_db()
  */
 
 // Callback function for reading data
-static int nick_callback(void *data, int argc, char **argv, char **azColName){
+static int user_callback(void *data, int argc, char **argv, char **azColName){
     int i;
     db_nick_callback callback;
     
     callback = (db_nick_callback)data;
     
+    cc_user *user = malloc(sizeof(cc_user));
+    
     // Iterate the arguments to show the query results
     for(i = 0; i < argc; ++i){
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+        //printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+        
+        if (strcmp(azColName[i], "id") == 0 && argv[i]) {
+            user->user_id = atoi(argv[i]);
+        }
+        else if (strcmp(azColName[i], "nick") == 0 && argv[i]) {
+            size_t len = strlen(argv[i]);
+            user->nick_len = len;
+            user->nick = malloc(sizeof(char) * len);
+            strncpy(user->nick, argv[i], len);
+        }
+        else if (strcmp(azColName[i], "serverid") == 0 && argv[i]) {
+            user->server_id = atoi(argv[i]);
+        }
     }
+    
+    callback(user);
+    
+    query_answered = 1;
     
     printf("\n");
     return 0;
@@ -140,10 +172,16 @@ void get_user_nick(const char *nick, db_nick_callback callback)
     char *errmsg;
     char query[128];
     
+    query_answered = 0;
+    
     // Find the user by nick
     sprintf(query, "SELECT * FROM users WHERE nick LIKE '%s'", nick);
-    status = sqlite3_exec(db_handle, query, nick_callback, (void*)callback, &errmsg);
+    status = sqlite3_exec(db_handle, query, user_callback, (void*)callback, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
+
+    if (query_answered == 0) {
+        callback(NULL);
+    }
 }
 
 void get_user_id(int user_id, db_nick_callback callback)
@@ -152,10 +190,16 @@ void get_user_id(int user_id, db_nick_callback callback)
     char *errmsg;
     char query[128];
     
+    query_answered = 0;
+    
     // Find the user by id
     sprintf(query, "SELECT * FROM users WHERE id = %d", user_id);
-    status = sqlite3_exec(db_handle, query, nick_callback, (void*)callback, &errmsg);
+    status = sqlite3_exec(db_handle, query, user_callback, (void*)callback, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
+    
+    if (query_answered == 0) {
+        callback(NULL);
+    }
 }
 
 
