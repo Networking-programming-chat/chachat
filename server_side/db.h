@@ -2,6 +2,7 @@
 #ifndef __Chachat__db__
 #define __Chachat__db__
 
+#include <stdlib.h>
 #include "sqlite3.h"
 
 // User and channel structs
@@ -27,6 +28,12 @@ void free_cc_channel(cc_channel *channel);
 
 void init_db();                 // Will initialize the db (create if not present and load)
 void init_db2(sqlite3 *db);     // Will initialize the db (create if not present and load)
+
+void close_db();                // Will close the db in use
+
+// Search functions
+void get_user_nick(const char *, void(*)(cc_user *));
+void get_user_id(int, void(*)(cc_user *));
 
 // TODO: what functions do we need
 /*
