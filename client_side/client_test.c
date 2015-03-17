@@ -4,11 +4,13 @@
 
 
 int main(void) {
-char *hostAddr="nwprog1.netlab.hut.fi";
-char *hostPort="5000", nickName[20];
-int connect, nickSend;
-Msgheader clientsName;
-char message[MAXMSG];
+	//indents make code easier to read;
+	char *hostAddr="localhost";		//tested with localhost
+	char *hostPort="3333", nickName[20];
+	int connect, nickSend;
+	Msgheader clientsName;
+	char message[MAXMSG];
+	
 if ((connect=client(hostAddr, hostPort))<0) {
 perror("tcp connection error\n");
 return -1;
@@ -16,6 +18,7 @@ return -1;
 printf("To start chatting type /nick your_nickname\n");
 }
 
+//sizeof(nickName) is the size of 64bit memory pointer, so might break stuff.
 fgets(nickName,sizeof(nickName),stdin);
 
 memset(&clientsName, 0, sizeof(clientsName));
@@ -30,6 +33,8 @@ printf("To join a channel type /join #channel_name\n");
 printf("To quit type /quit\n");
 printf("###########################################################\n");
 }
+
+//sizeof(message) is the size of 64bit memory pointer, so might break stuff.
 memset(message, 0, sizeof(message));
 //while(1){
 fgets(message,sizeof(message),stdin);
