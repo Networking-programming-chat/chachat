@@ -112,15 +112,23 @@ int read_message(int fd, char * msg_dest, Msgheader *hdr_dest){
 //RETURN VALUE: message length on succes, -1 on error
 int pass_message(int fd, const char * message, Msgheader* hdr){
 	
-	int n,msgsize;
+	int n;
+	uint16_t msgsize;
 	char hdrbuf[HDRSIZE];
 	Msgheader sendme;
 		
 	memset(&sendme, 0, sizeof(Msgheader));
-	if(message)	msgsize=strlen(message);
-	else msgsize=0;
-	if(msgsize>MAXMSG) msgsize=MAXMSG;
-   	printf("the message is actually %d bytes long\n", msgsize);
+	
+	if(!message){
+		msgsize=0;
+		hdr->msglen=msgsize;
+	}	
+	else if(!hdr->msglen){
+		msgsize=strlen(message); //might overflow
+		hdr->msglen=msgsize;
+	}
+	else msgsize=hdr->msglen;
+	printf("the message is actually %d bytes long\n", hdr->msglen);
 
 	//serialize does the byteorders n stuffs.
    	serialize_hdr(hdrbuf, hdr);
