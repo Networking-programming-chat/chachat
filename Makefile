@@ -21,4 +21,4 @@ cleanobjects:
 	rm -f *.o
 
 clean:
-	rm -f ${PROGS} *~ *.a
+	rm -f testserver testclient
