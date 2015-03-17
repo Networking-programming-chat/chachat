@@ -37,7 +37,7 @@ char* serialize_hdr(char* buffer, Msgheader* hdr);
 //read a message from socket, store message to arg2, header to agr3
 int read_message(int fd, char * msg_dest, Msgheader *hdr_dest);
 
-//writes a normal chat message to socket, returns pointer to said string;
+//writes a normal chat message to socket. Returns message length after succesful forwarding. Header MUST contain the length of attached message for proper function.
 int pass_message(int fd, const char * message, Msgheader* hdr);
 
 #endif

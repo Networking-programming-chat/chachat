@@ -16,6 +16,18 @@ void print_hdr(Msgheader* n){
 	}
 }
 
+//rudimentary
+void is_valid_hdr(Msgheader* n){
+	if(n){
+	printf("----header-----\n");
+	printf("firstbyte set to: 0x%02X\n", n->firstbyte);
+	printf("msglen: ""%"PRIu16"\n", n->msglen);
+	printf("sender: %s\n", n->sender_id);
+	printf("recipient: %s\n\n", n->recipient_id);
+	}
+}
+
+
 void buffer_to_hdr(char *str, Msgheader* hdr)
 {
 	uint16_t* s_len_p;
@@ -39,10 +51,14 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 {
 	uint16_t tmp = htons(hdr->msglen);
 	printf("tmp: %hu\n", tmp);
+	memset(buffer, 0, HDRSIZE);	//redundant zeroing. probably.
 	memset(buffer, hdr->firstbyte, 1);
 	memcpy(&buffer[1], &tmp, 2);//1,2
-	strncpy(&buffer[3], hdr->recipient_id, MAX_NICKLEN);//3-22
-	strncpy(&buffer[23], hdr->sender_id, MAX_NICKLEN);//23-42
+	
+	if(hdr->recipient_id)
+		strncpy(&buffer[3], hdr->recipient_id, MAX_NICKLEN);//3-22
+	if(hdr->sender_id)
+		strncpy(&buffer[23], hdr->sender_id, MAX_NICKLEN);//23-42
 	return buffer;
 }
 
