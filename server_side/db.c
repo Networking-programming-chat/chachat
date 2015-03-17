@@ -2,13 +2,17 @@
 //  db.c
 //  Chachat
 //
-//  Created by Jussi Enroos on 4.3.2015.
-//  Copyright (c) 2015 Jussi Enroos. All rights reserved.
-//
 
 #include "db.h"
 
 #include <stdio.h>
+#include <stdlib.h> // exit()
+
+#include "netproto.h" // MAX_NICKLEN
+
+// This module takes care of the db handle
+
+static sqlite3 *db_handle;
 
 // Function to test a condition
 static void checksql (int test, sqlite3 * db, const char * message, ...)
@@ -47,17 +51,42 @@ static int printsql (int test, char *errmsg, const char * message, ...)
     return test;
 }
 
-void init_db(sqlite3 *db)
+void init_db2(sqlite3 *db)
 {
     int status, flags;
+    char *errmsg, querymsg[1024];
+    
+    db_handle = db;
     
     // Open / create database
     flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI;
     status = sqlite3_open_v2("file:test.db", &db, flags, NULL);
     checksql(status, db, "sqlite3_open_v2 error");
     
-    // TODO: check for tables, create if not found
+    // Create tables if not present
+    sprintf(querymsg, "CREATE TABLE IF NOT EXISTS users (id INTEGER NOT NULL PRIMARY KEY, nick TEXT, serverid INTEGER)");
+    status = sqlite3_exec(db, querymsg, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    sprintf(querymsg, "CREATE TABLE IF NOT EXISTS servers (id INTEGER NOT NULL PRIMARY KEY, ip TEXT)");
+    status = sqlite3_exec(db, querymsg, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    sprintf(querymsg, "CREATE TABLE IF NOT EXISTS channels (id INTEGER NOT NULL PRIMARY KEY, name TEXT, topic TEXT)");
+    status = sqlite3_exec(db, querymsg, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    sprintf(querymsg, "CREATE TABLE IF NOT EXISTS joined (userid INTEGER NOT NULL, channelid INTEGER NOT NULL, PRIMARY KEY (userid,channelid))");
+    status = sqlite3_exec(db, querymsg, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
     
     // SELECT name FROM sqlite_master WHERE type='table' AND name='table_name';
 }
+
+void init_db()
+{
+    init_db2(db_handle);
+}
+
+
 

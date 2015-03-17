@@ -4,7 +4,8 @@
 
 #include "sqlite3.h"
 
-void init_db(sqlite3 *db);      // Will initialize the db (create if not present and load)
+void init_db();                 // Will initialize the db (create if not present and load)
+void init_db2(sqlite3 *db);     // Will initialize the db (create if not present and load)
 
 // TODO: what functions do we need
 /*
