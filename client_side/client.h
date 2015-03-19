@@ -12,7 +12,7 @@
 //argu: char *host is the string of server's name
 //     char *serv is the port of server in string format
 //return: the sock desciptor
-int client(const char *servName, const char *servPort);
+int client_connect(const char *servName, const char *servPort);
 
 
 #endif
