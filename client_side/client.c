@@ -27,7 +27,7 @@ outbuf, sizeof(outbuf));
 printf("%s\n",ret);
 }*/
 
-int client(const char *servName, const char *servPort){
+int client_connect(const char *servName, const char *servPort){
 int n,sockfd;
 struct addrinfo hints, *res,*ressave;
 bzero(&hints, sizeof(struct addrinfo));
