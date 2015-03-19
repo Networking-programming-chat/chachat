@@ -54,117 +54,117 @@ char sentMsg[MAXMSG], recvMsg[MAXMSG];
 		printf("To join a channel type /join #channel_name\n");
 		printf("To quit type /quit\n");
 		printf("###########################################################\n");
-	}
 	
-	//set content to zero
-	memset(&clientsChat, 0, sizeof(clientsChat));
-	//string formating going on
-	char command[30], cmd[6], name[21], c1, c2;
-	fgets(command,sizeof(command),stdin);
-	//detach the (/) xter and the (@) xter 
-	sscanf(command, " %c %s %c %s", &c1, cmd, &c2, name);
-	//set content of command to zero and write to it again
-	memset(command, 0, sizeof(command));
-	sprintf(command, "%s %s", cmd, name);
-	
-	int cas;
-	if(strcmp(cmd,"chat")==0){
-		cas=1;
 		
-	}else if(strcmp(cmd,"join")==0){
-	    cas=2;
-	    
-	}else if(strcmp(cmd,"quit")==0){
-	    cas=3;
-	    
-	}
-	
-	
-	switch(cas){
-	
-	case 1:
-	        //set message header fields appropriately
-		clientsChat.sender_id=nick_name;
-		clientsChat.firstbyte='1';
-		clientsChat.msglen=MAXMSG;
-		clientsChat.recipient_id=name;
+		//set content to zero
+		memset(&clientsChat, 0, sizeof(clientsChat));
+		//string formating going on
+		char command[30], cmd[6], name[21], c1, c2;
+		fgets(command,sizeof(command),stdin);
+		//detach the (/) xter and the (@) xter 
+		sscanf(command, " %c %s %c %s", &c1, cmd, &c2, name);
+		//set content of command to zero and write to it again
+		memset(command, 0, sizeof(command));
+		sprintf(command, "%s %s", cmd, name);
 		
-		if(pass_message(connect, command, &clientsChat)<0){
-			printf("there was problem connecting to a chat client\n");
+		int cas;
+		if(strcmp(cmd,"chat")==0){
+			cas=1;
+			
+		}else if(strcmp(cmd,"join")==0){
+		    cas=2;
+		    
+		}else if(strcmp(cmd,"quit")==0){
+		    cas=3;
+		    
 		}
 		
-		 
-			while (fgets(sentMsg, MAXMSG, stdin) != NULL) {
-
-				if (pass_message(connect, sentMsg, &clientsChat)<0) {
-				    perror("sendto");
-				    return;
-				}
-
-				if (n = read_message(connect, recvMsg, &clientsChat)<0) {
-				    perror("recvfrom");
-				    return;
-				}
-
-				recvMsg[n] = 0;        /* null terminate */
-				if (fputs(recvMsg, stdout) == EOF) {
-				    fprintf(stderr, "fputs error\n");
-				    return;
-				}
+		
+		switch(cas){
+		
+		case 1:
+		        //set message header fields appropriately
+			clientsChat.sender_id=nick_name;
+			clientsChat.firstbyte='1';
+			clientsChat.msglen=MAXMSG;
+			clientsChat.recipient_id=name;
+			
+			if(pass_message(connect, command, &clientsChat)<0){
+				printf("there was problem connecting to a chat client\n");
 			}
-		
-		break;
-	case 2:
-	        //set message header fields appropriately
-		clientsChat.sender_id=nick_name;
-		clientsChat.firstbyte='2';
-		clientsChat.msglen=MAXMSG;
-		clientsChat.recipient_id=name;
-		
-		if(pass_message(connect, command, &clientsChat)<0){
-			printf("there was problem joining a chat channel\n");
-		}
-		
-		 
-			while (fgets(sentMsg, MAXMSG, stdin) != NULL) {
-
-				if (pass_message(connect, sentMsg, &clientsChat)<0) {
-				    perror("sendto");
-				    return;
-				}
-
-				if (n = read_message(connect, recvMsg, &clientsChat)<0) {
-				    perror("recvfrom");
-				    return;
-				}
-
-				recvMsg[n] = 0;        /* null terminate */
-				if (fputs(recvMsg, stdout) == EOF) {
-				    fprintf(stderr, "fputs error\n");
-				    return;
-				}
-			}
-		
-		break;
-	case 3:
-	        //set message header fields appropriately
-		clientsChat.sender_id=nick_name;
-		clientsChat.firstbyte='3';
-		clientsChat.msglen=0;
-		clientsChat.recipient_id=0;
-		//use to send the quit command to the server
-		if(pass_message(connect, command, &clientsChat)<0){
-			printf("there was problem quiting\n");
-		}
-			printf("Thanks for using our service\n We are always available for you.\n");
-		//server replies with a disconnection message
-	    //read_message(connect, command, clientsChat);
-		break;
-		
-	default:	
-		printf("That was an invalid input, try reconnecting :)\n");
-	}
+			
+			 
+				while (fgets(sentMsg, MAXMSG, stdin) != NULL) {
 	
+					if (pass_message(connect, sentMsg, &clientsChat)<0) {
+					    perror("sendto");
+					    return;
+					}
+	
+					if (n = read_message(connect, recvMsg, &clientsChat)<0) {
+					    perror("recvfrom");
+					    return;
+					}
+	
+					recvMsg[n] = 0;        /* null terminate */
+					if (fputs(recvMsg, stdout) == EOF) {
+					    fprintf(stderr, "fputs error\n");
+					    return;
+					}
+				}
+			
+			break;
+		case 2:
+		        //set message header fields appropriately
+			clientsChat.sender_id=nick_name;
+			clientsChat.firstbyte='2';
+			clientsChat.msglen=MAXMSG;
+			clientsChat.recipient_id=name;
+			
+			if(pass_message(connect, command, &clientsChat)<0){
+				printf("there was problem joining a chat channel\n");
+			}
+			
+			 
+				while (fgets(sentMsg, MAXMSG, stdin) != NULL) {
+	
+					if (pass_message(connect, sentMsg, &clientsChat)<0) {
+					    perror("sendto");
+					    return;
+					}
+	
+					if (n = read_message(connect, recvMsg, &clientsChat)<0) {
+					    perror("recvfrom");
+					    return;
+					}
+	
+					recvMsg[n] = 0;        /* null terminate */
+					if (fputs(recvMsg, stdout) == EOF) {
+					    fprintf(stderr, "fputs error\n");
+					    return;
+					}
+				}
+			
+			break;
+		case 3:
+		        //set message header fields appropriately
+			clientsChat.sender_id=nick_name;
+			clientsChat.firstbyte='3';
+			clientsChat.msglen=0;
+			clientsChat.recipient_id=0;
+			//use to send the quit command to the server
+			if(pass_message(connect, command, &clientsChat)<0){
+				printf("there was problem quiting\n");
+			}
+				printf("Thanks for using our service\n We are always available for you.\n");
+			//server replies with a disconnection message
+		    //read_message(connect, command, clientsChat);
+			break;
+			
+		default:	
+			printf("That was an invalid input, try reconnecting :)\n");
+		}
+	}	
 	
 /*	memset(message, 0, sizeof(message));*/
 /*	//while(1){*/
