@@ -1,8 +1,11 @@
 #include "netproto.h"
 #include <unistd.h>
 #include <stdlib.h>
-#include <inttypes.h>
-
+#include <string.h>
+#include <arpa/inet.h>	//htonl
+#include <stdint.h>
+#include <stdio.h>
+#include <errno.h>	
 
 //NULL if fail, sets errno?
 //RETURN VALUE: ptr to Msgheader struct;

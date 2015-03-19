@@ -1,11 +1,7 @@
 #ifndef CHACHAT_NETPROTO_H
 #define CHACHAT_NETPROTO_H
 
-#include <arpa/inet.h>	//htonl
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>		//check this for errors
+#include <inttypes.h>
 
 #define MAX_NICKLEN 20	//weird and arbitrary, need comments
 #define HDRSIZE 43 // use this
