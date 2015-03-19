@@ -21,12 +21,15 @@ void print_address(const struct addrinfo * res);
 int read_nickname(int socket,char *);
 
 /*add client nickname in the database*/
-int client_nick(int socket);
+char* client_nick(int socket);
 
 //Handling client's normal message
-void normalMessageHandle(char *mesbuff, Msgheader *mesheader);
+void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader);
 
-//Handling client's command message
-void commandMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
+//Handling client's channel join command message
+void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
+
+//Handling client's quite command message
+void quitMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
 
 #endif
