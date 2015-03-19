@@ -84,30 +84,37 @@ void print_address(const struct addrinfo *res)//this function is based on lectur
 }
 
 
-int client_nick(int socket){
+char* client_nick(int socket){
     char nickname[MAX_NICKLEN];
     ssize_t n1;
-    
     
     bzero(nickname, sizeof(nickname));
     if ((n1=read(socket,nickname, sizeof(nickname)))<0) {
         printf("read client name error\n");
         return -1;
     }
-    
-    printf("%s\n",nickname);
+	
+    printf("sender's_id is %s\n", nickname);
+	
     
     /*---check if the nickname is already used-----*/
     /*----The nickname is stored in char nickname[]------*/
     /*--If already used, return 1, if not, return 0*/
     
-    return 0;
+    return nickname;
 }
 
-//Handling client's normal message
-void normalMessageHandle(char *mesbuff, Msgheader *mesheader){
+//Handling client's normal chat message
+void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     char *dest;
-
+    
+	if (strncmp(mesbuff, "chat", 4)) {//join command
+        printf("chat command!\n");
+        
+        /*-------------Update the channle information of the client-------------------*/
+        /*---------argument: from (source id), *mesbuff (channel)------*/
+    }
+	
     dest=mesheader->recipient_id;
     printf("destination client:%s\n",dest);
     /*----check database if the destination exists and the server it connected----*/
@@ -119,14 +126,31 @@ void normalMessageHandle(char *mesbuff, Msgheader *mesheader){
     
 }
 
-//Handling client's command message
-void commandMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){
+//Handling client's channel join command message
+void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){
     
     char *from;
     from=mesheader->sender_id;//source id
     
-    if (strncmp(mesbuff, "quit",4)){//quit command
-        printf("quit command");
+    
+    if (strncmp(mesbuff, "join", 4)) {//join command
+        printf("join command!\n");
+        
+        /*-------------Update the channle information of the client-------------------*/
+        /*---------argument: from (source id), *mesbuff (channel)------*/
+    }
+    
+    
+}
+
+//Handling client's quite command message
+void quitMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){
+    
+    char *from;
+    from=mesheader->sender_id;//source id
+    
+    if (strncmp(mesbuff, "quit", 4)){//quit command
+        printf("quit command!");
         
         /*--------delete client's information in database------*/
         /*--------The argument is from pointer which is the source--------*/
@@ -134,12 +158,6 @@ void commandMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){
         close(connfd);
     }
     
-    if (strncmp(mesbuff, "join",4)) {//joint command
-        printf("joint command\n");
-        
-        /*-------------Update the channle information of the client-------------------*/
-        /*---------argument: from (source id), *mesbuff (channel)------*/
-    }
     
     
 }
