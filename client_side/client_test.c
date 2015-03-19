@@ -1,47 +1,167 @@
 #include <stdio.h>
 #include "client.h"
 #include "netproto.h"
+#define MAX 50
 
 
 int main(void) {
-	//indents make code easier to read;
-	char *hostAddr="localhost";		//tested with localhost
-	char *hostPort="3333", nickName[20];
-	int connect, nickSend;
-	Msgheader clientsName;
-	char message[MAXMSG];
+char *hostAddr="localhost";
+char *hostPort="3333", nick_name[MAX];
+int connect, nickSend, nickCnt=3, len, n;
+Msgheader clientsChat;
+char message[MAXMSG];
+	if ((connect=client_connect(hostAddr, hostPort))<0) {
+		perror("tcp connection error\n");
+	return -1;
+	}else{
+		printf("To start chatting type /nick your_nickname\n");
+	}
+
+    memset(nick_name, 0, sizeof(nick_name));
+    while(nickCnt != 0){
+	  printf ("Enter your nickname: ");
+	  fgets(nick_name,sizeof(nick_name),stdin);
+	  len = strlen(nick_name);
+	  //printf ("The nickname entered is %d characters long.\n",len);
+  
+  	  if(len < MAX_NICKLEN ){
+			printf("what a nice nick! :)\n");
+			nickCnt = 0;
+		}else{
+			printf ("Your nickname is too long\n");
+			nickCnt--;
+			printf("you have %d options left.\n", nickCnt);
+			if(nickCnt==0){
+			printf("you ran out of options?\n Try reconnect again :)\n");
+			}
+		}
+    }
+    
+	memset(&clientsChat, 0, sizeof(clientsChat));
+	clientsChat.sender_id=nick_name;
+	clientsChat.firstbyte='0';
+	clientsChat.msglen=0;
+	clientsChat.recipient_id=0;
+
+	if(nickSend = write(connect, clientsChat, sizeof(clientsChat)) < 0){
+		printf("There is problem writing nickname to the server\n");
+	}else{
+		printf("###########################################################\n");
+		printf("The following are standard rules:\n");
+		printf("To chat with a friend type /chat @receipient's_nickname\n");
+		printf("To join a channel type /join #channel_name\n");
+		printf("To quit type /quit\n");
+		printf("###########################################################\n");
+	}
 	
-if ((connect=client(hostAddr, hostPort))<0) {
-perror("tcp connection error\n");
-return -1;
-}else{
-printf("To start chatting type /nick your_nickname\n");
-}
+	memset(&clientsChat, 0, sizeof(clientsChat));
+	char command[30], cmd[6], name[21], c1, c2;
+	fgets(command,sizeof(command),stdin);
+	sscanf(command, " %c %s %c %s", &c1, cmd, &c2, name);
+	memset(command, 0, sizeof(command));
+	sprintf(command, "%s %s", cmd, name);
+	
+	int cas;
+	if(strcmp(cmd,"chat")==0){
+		cas=1;
+		
+	}else if(strcmp(cmd,"join")==0){
+	    cas=2;
+	    
+	}else if(strcmp(cmd,"quit")==0){
+	    cas=3;
+	    
+	}
+	
+	
+	switch(cas){
+	
+	case 1:
+		clientsChat.sender_id=nick_name;
+		clientsChat.firstbyte='1';
+		clientsChat.msglen=MAXMSG;
+		clientsChat.recipient_id=name;
+		if(pass_message(connect, command, &clientsChat)<0){
+			printf("there was problem connecting to a chat client\n");
+		}
+		
+		 
+			while (fgets(message, MAXMSG, stdin) != NULL) {
 
-//sizeof(nickName) is the size of 64bit memory pointer, so might break stuff.
-fgets(nickName,sizeof(nickName),stdin);
+				if (pass_message(connect, message, &clientsChat)<0) {
+				    perror("sendto");
+				    return;
+				}
 
-memset(&clientsName, 0, sizeof(clientsName));
-clientsName.sender_id=nickName;
-if(nickSend = write(connect, clientsName.sender_id, sizeof(clientsName.sender_id)) < 0){
-printf("There is problem writing nickname to the server\n");
-}else{
-printf("###########################################################\n");
-printf("The following are standard rules:\n");
-printf("To chat with a friend type /chat @receipient's_nickname\n");
-printf("To join a channel type /join #channel_name\n");
-printf("To quit type /quit\n");
-printf("###########################################################\n");
-}
+				if (n = read_message(connect, message, &clientsChat)<0) {
+				    perror("recvfrom");
+				    return;
+				}
 
-//sizeof(message) is the size of 64bit memory pointer, so might break stuff.
-memset(message, 0, sizeof(message));
-//while(1){
-fgets(message,sizeof(message),stdin);
-pass_message(connect, message, &clientsName);
-memset(message, 0, sizeof(message));
-read_message(connect, message, &clientsName);
-//}
+				message[n] = 0;        /* null terminate */
+				if (fputs(message, stdout) == EOF) {
+				    fprintf(stderr, "fputs error\n");
+				    return;
+				}
+			}
+		
+		break;
+	case 2:
+		clientsChat.sender_id=nick_name;
+		clientsChat.firstbyte='2';
+		clientsChat.msglen=MAXMSG;
+		clientsChat.recipient_id=name;
+		if(pass_message(connect, command, &clientsChat)<0){
+			printf("there was problem joining a chat channel\n");
+		}
+		
+		 
+			while (fgets(message, MAXMSG, stdin) != NULL) {
+
+				if (pass_message(connect, message, &clientsChat)<0) {
+				    perror("sendto");
+				    return;
+				}
+
+				if (n = read_message(connect, message, &clientsChat)<0) {
+				    perror("recvfrom");
+				    return;
+				}
+
+				message[n] = 0;        /* null terminate */
+				if (fputs(message, stdout) == EOF) {
+				    fprintf(stderr, "fputs error\n");
+				    return;
+				}
+			}
+		
+		break;
+	case 3:
+		clientsChat.sender_id=nick_name;
+		clientsChat.firstbyte='3';
+		clientsChat.msglen=0;
+		clientsChat.recipient_id=0;
+		//use to send the quit command to the server
+		if(pass_message(connect, command, &clientsChat)<0){
+			printf("there was problem quiting\n");
+		}
+			printf("Thanks for using our service\n We are always available for you.\n");
+		//server replies with a disconnection message
+	    //read_message(connect, command, clientsChat);
+		break;
+		
+	default:	
+		printf("That was an invalid input, try reconnecting :)\n");
+	}
+	
+	
+/*	memset(message, 0, sizeof(message));*/
+/*	//while(1){*/
+/*		fgets(message,sizeof(message),stdin);*/
+/*		pass_message(connect, message, &clientsName);*/
+/*		memset(message, 0, sizeof(message));*/
+/*		read_message(connect, message, &clientsName);*/
+/*	//}*/
 return 0;
 }
 
