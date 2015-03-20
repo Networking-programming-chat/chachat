@@ -29,29 +29,29 @@ Client:
 - Also handles binary for db transmissions
 - normal messages pass as is, through servers
  
-	1. send header
-	
-	Application needs 2 allocated headers to store outgoing and incoming data per connection.
-	
+1. send header
+
+Application needs 2 allocated headers to store outgoing and incoming data per connection.
+
 	typedef struct{
 	char firstbyte;				//0x00 == normal message, 0x01 == channel, 0x02 == command!, 0x03 == something else
 	uint16_t msglen;			//truncate messages to fit 16bit ~65k chars.
 	char* recipient_id;			//nick specified, "nulled 20byte array"
 	char* sender_id;			//nick specified, "nulled 20byte array"
 	}Msgheader;
-	
-	2. send data separately
-	
-	3. functions for applications:
-	
-	//read a message from socket, store message to arg2, header to agr3
-	int read_message(int fd, char * msg_dest, Msgheader *hdr_dest);
 
-	//writes a normal message to socket. Returns read() return after last read after succesful forwarding. Header MUST contain the length of attached message for proper function with binary.
-	int pass_message(int fd, const char * message, Msgheader* hdr);
-	
-	//frees the allocated memory of a header
-	void free_hdr(Msgheader *hdr);
+2. send data separately
+
+3. functions for applications:
+
+//read a message from socket, store message to arg2, header to agr3
+int read_message(int fd, char * msg_dest, Msgheader *hdr_dest);
+
+//writes a normal message to socket. Returns read() return after last read after succesful forwarding. Header MUST contain the length of attached message for proper function with binary.
+int pass_message(int fd, const char * message, Msgheader* hdr);
+
+//frees the allocated memory of a header
+void free_hdr(Msgheader *hdr);
 
 	  
 #6. Quality assurance
@@ -66,7 +66,7 @@ Client connect to server, one thread:
  
 1. client->server, establish connection.
 
-2, If the connection success (check the the return value of connect()), the client prints the rules to the client’s UI screen. 
+2, If the connection success (check the the return value of connect()), the client prints the rules to the clientâ€™s UI screen. 
 
 3. client->server, client sends its nickname to the server not more than 20 characters long.
 
@@ -76,12 +76,12 @@ and after 3 trials, return to connection window. No, server allocates a unique I
 //Not in this phase 4. server->server, synchronize the database between servers.
 
 
-5. Every time the client parse the UI input. Private message’s format ”/chat @destination messagebody“. Other Command like quit format ”/quit”, “/join channel name”.
+5. Every time the client parse the UI input. Private messageâ€™s format â€/chat @destination messagebodyâ€œ. Other Command like quit format â€/quitâ€, â€œ/join channel nameâ€.
 
-   Then the client fills the header Mesghheader. If it is normal message, set the “firstbyte” to ‘0’; If it is command, set the “firstbyte” to ‘2’. And the recipent_id is 20 bytes of 0. The command content (remove the slash) is included in messagebody. And sends it to the server.
+   Then the client fills the header Mesghheader. If it is normal message, set the â€œfirstbyteâ€ to â€˜0â€™; If it is command, set the â€œfirstbyteâ€ to â€˜2â€™. And the recipent_id is 20 bytes of 0. The command content (remove the slash) is included in messagebody. And sends it to the server.
 
 
-6. The server read the header. If it is quit command, close the connection and delete the client’s information from the database.
+6. The server read the header. If it is quit command, close the connection and delete the clientâ€™s information from the database.
 
  
 Client sends message:
@@ -95,7 +95,7 @@ The server update the database and update its channel information.
 And the servers synchronize the database between server.
 
 client sends /quit
-The server close the connection and delete the user’s information in database. And send synchronise information to other servers.
+The server close the connection and delete the userâ€™s information in database. And send synchronise information to other servers.
   
 Client sends P2P message: through the server it connects with. 
 The server parses the message and forward the message based on its "routing table" to the destination server. 
