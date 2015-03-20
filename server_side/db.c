@@ -22,12 +22,26 @@ static int query_answered;
 
 void free_cc_user(cc_user *user)
 {
+    // Clear possible linked list
+    if (user->next_user != NULL) {
+        cc_user *next = user->next_user;
+        user->next_user = NULL;
+        free_cc_user(next);
+    }
+
     free(user->nick);
     free(user);
 }
 
 void free_cc_channel(cc_channel *channel)
 {
+    // Clear possible linked list
+    if (channel->next_channel != NULL) {
+        cc_channel *next = channel->next_channel;
+        channel->next_channel = NULL;
+        free_cc_channel(next);
+    }
+
     free(channel->name);
     free(channel->topic);
     free(channel);
@@ -134,11 +148,13 @@ void close_db()
 // Callback function for reading data
 static int user_callback(void *data, int argc, char **argv, char **azColName){
     int i;
-    db_user_callback callback;
+    cc_user **user_ptr;
+    cc_user *user;
     
-    callback = (db_user_callback)data;
+    user_ptr = (cc_user **)data;
     
-    cc_user *user = malloc(sizeof(cc_user));
+    user = malloc(sizeof(cc_user));
+    *user_ptr = user;
     
     // Iterate the arguments to show the query results
     for(i = 0; i < argc; ++i){
@@ -158,57 +174,63 @@ static int user_callback(void *data, int argc, char **argv, char **azColName){
         }
     }
     
-    callback(user);
-    
-    query_answered = 1;
-    
     printf("\n");
     return 0;
 }
 
-void get_user_nick(const char *nick, db_user_callback callback)
+cc_user * get_user_nick(const char *nick)
 {
     int status;
     char *errmsg;
     char query[128];
+    cc_user **user_ptr;
     
-    query_answered = 0;
+    user_ptr = malloc(sizeof(cc_user*));
+    *user_ptr = NULL;
     
     // Find the user by nick
     sprintf(query, "SELECT * FROM users WHERE nick LIKE '%s'", nick);
-    status = sqlite3_exec(db_handle, query, user_callback, (void*)callback, &errmsg);
+    status = sqlite3_exec(db_handle, query, user_callback, (void*)user_ptr, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
 
-    if (query_answered == 0) {
-        callback(NULL);
-    }
+    // TODO: Cannot handle db threading
+    cc_user *user = *user_ptr;
+    free(user_ptr);
+    
+    return user;
 }
 
-void get_user_id(int user_id, db_user_callback callback)
+cc_user * get_user_id(int user_id)
 {
     int status;
     char *errmsg;
     char query[128];
+    cc_user **user_ptr;
     
-    query_answered = 0;
+    user_ptr = malloc(sizeof(cc_user*));
+    *user_ptr = NULL;
     
     // Find the user by id
     sprintf(query, "SELECT * FROM users WHERE id = %d", user_id);
-    status = sqlite3_exec(db_handle, query, user_callback, (void*)callback, &errmsg);
+    status = sqlite3_exec(db_handle, query, user_callback, (void*)user_ptr, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
     
-    if (query_answered == 0) {
-        callback(NULL);
-    }
+    // TODO: Cannot handle db threading
+    cc_user *user = *user_ptr;
+    free(user_ptr);
+    
+    return user;
 }
 
 static int channel_callback(void *data, int argc, char **argv, char **azColName){
     int i;
-    db_channel_callback callback;
+    cc_channel **channel_ptr;
+    cc_channel *channel;
     
-    callback = (db_channel_callback)data;
+    channel_ptr = (cc_channel **)data;
     
-    cc_channel *channel = malloc(sizeof(cc_channel));
+    channel = malloc(sizeof(cc_channel));
+    *channel_ptr = channel;
     
     // Iterate the arguments to show the query results
     for(i = 0; i < argc; ++i){
@@ -231,49 +253,51 @@ static int channel_callback(void *data, int argc, char **argv, char **azColName)
         }
     }
     
-    callback(channel);
-    
-    query_answered = 1;
-    
     printf("\n");
     return 0;
 }
 
 
-void get_channel_name(const char *name, db_channel_callback callback)
+cc_channel * get_channel_name(const char *name)
 {
     int status;
     char *errmsg;
     char query[128];
+    cc_channel **channel_ptr;
     
-    query_answered = 0;
+    channel_ptr = malloc(sizeof(cc_channel*));
+    *channel_ptr = NULL;
     
-    // Find the user by nick
+    // Find the channel by name
     sprintf(query, "SELECT * FROM channels WHERE name LIKE '%s'", name);
-    status = sqlite3_exec(db_handle, query, channel_callback, (void*)callback, &errmsg);
+    status = sqlite3_exec(db_handle, query, channel_callback, (void*)channel_ptr, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
     
-    if (query_answered == 0) {
-        callback(NULL);
-    }
+    cc_channel *channel = *channel_ptr;
+    free(channel_ptr);
+    
+    return channel;
 }
 
-void get_channel_id(int channel_id, db_channel_callback callback)
+cc_channel * get_channel_id(int channel_id)
 {
     int status;
     char *errmsg;
     char query[128];
+    cc_channel **channel_ptr;
     
-    query_answered = 0;
+    channel_ptr = malloc(sizeof(cc_channel*));
+    *channel_ptr = NULL;
     
-    // Find the user by nick
+    // Find the channel by id
     sprintf(query, "SELECT * FROM channels WHERE id = %d", channel_id);
-    status = sqlite3_exec(db_handle, query, channel_callback, (void*)callback, &errmsg);
+    status = sqlite3_exec(db_handle, query, channel_callback, (void*)channel_ptr, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
     
-    if (query_answered == 0) {
-        callback(NULL);
-    }
+    cc_channel *channel = *channel_ptr;
+    free(channel_ptr);
+    
+    return channel;
 }
 
 

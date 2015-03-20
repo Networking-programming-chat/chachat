@@ -3,23 +3,29 @@
 #define __Chachat__db__
 
 #include <stdlib.h>
+
 #include "sqlite3.h"
 
 // User and channel structs
 
-typedef struct {
+typedef struct cc_user_struct {
     int user_id;
     int server_id;
     size_t nick_len;
     char *nick;
+    
+    // For linked lists
+    struct cc_user_struct *next_user;
 } cc_user ;
 
-typedef struct {
+typedef struct cc_channel_struct {
     int channel_id;
     size_t name_len;
     size_t topic_len;
     char *name;
     char *topic;
+    
+    struct cc_channel_struct *next_channel;
 } cc_channel ;
 
 void free_cc_user(cc_user *user);
@@ -36,11 +42,11 @@ void init_db2(sqlite3 *db);     // Will initialize the db (create if not present
 void close_db();                // Will close the db in use
 
 // Search functions
-void get_user_nick(const char *, void(*)(cc_user *));
-void get_user_id(int, void(*)(cc_user *));
+cc_user * get_user_nick(const char *);
+cc_user * get_user_id(int);
 
-void get_channel_name(const char *, void(*)(cc_channel *));
-void get_channel_id(int, void(*)(cc_channel *));
+cc_channel * get_channel_name(const char *);
+cc_channel * get_channel_id(int);
 
 // TODO: what functions do we need
 /*
