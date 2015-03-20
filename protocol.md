@@ -1,17 +1,19 @@
+
 #c2s protos
-typedef struct header1{
-    char* userid;       //server-generated, or user specified. Handle collisions.
-    uint16_t msglen;    //truncate messages to fit 16bit 65k chars.
-    int type;           //ascii/bin? utf8?
-    char* message;      //malloc'd messagebody. below some ideas.
-    int somecounter or such
-}Message;
+
+    typedef struct header1{
+	char* userid;       //server-generated, or user specified. Handle collisions.
+	uint16_t msglen;    //truncate messages to fit 16bit 65k chars.
+	int type;           //ascii/bin? utf8?
+	char* message;      //malloc'd messagebody. below some ideas.
+	int somecounter or such
+    }Message;
 
 messagebody:
-
 1. readfunction in a thread on the server, reads msglen bytes from socket
 2. as a string or binary. probably string. 8-bit characters?
-3. userid can have prefixes, ex. #!&% whatever to denote channels/groupchats. If specified groupchat room does not exist, it is created.
+3. userid can have prefixes, ex. #!&% whatever to denote channels/groupchats. If specified groupchat room does not exist, it 
+is created.
 
 
 
@@ -60,13 +62,15 @@ messagebody:
     }s2sMessage;
             
     typedef struct data1{
-	    char* clientarray[]; // holds pointers to new connected client ids, gets passed around in the network to all servers.
+	    char* clientarray[]; // holds pointers to new connected client ids, gets passed around in the network to all 
+servers.
 	    char* serverlist[];        //array of other servers iPs in the network
     }S2SNoise;
 
 
 - It seems s2c protocol messages could be passed along unaltered inside the network
-- Perhaps the clientarray can also hold channelnames hosted on a specific server. There is little difference from protocol standpoint.
+- Perhaps the clientarray can also hold channelnames hosted on a specific server. There is little difference from protocol 
+standpoint.
 
 
 ----------------
@@ -80,7 +84,8 @@ Client -> server -> client
     uint16_t meslen         2 bytes                     // Length of message
     char* id                idlen bytes (up to 255)     // id of sender
     char* res               reslen bytes                // recipient
-    uint16_t message        meslen bytes                // Message (in ascii or utf-8, I'd say we can just choose one for everyone) 
+    uint16_t message        meslen bytes                // Message (in ascii or utf-8, I'd say we can just choose one for 
+everyone) 
 
 Server -> server
 
@@ -115,4 +120,3 @@ Could this be improved to be more effective?
             char* id         idlen bytes
         }
     }
-
