@@ -16,9 +16,18 @@ typedef void (*db_channel_callback)(cc_channel*);
 
 static sqlite3 *db_handle;
 
+static unsigned long next_user_id;
+static unsigned long next_channel_id;
+static unsigned long next_join_id;
+
+static int server_id;
 
 void free_cc_user(cc_user *user)
 {
+    if (user == NULL) {
+        return;
+    }
+    
     // Clear possible linked list
     if (user->next_user != NULL) {
         cc_user *next = user->next_user;
@@ -32,6 +41,10 @@ void free_cc_user(cc_user *user)
 
 void free_cc_channel(cc_channel *channel)
 {
+    if (channel == NULL) {
+        return;
+    }
+
     // Clear possible linked list
     if (channel->next_channel != NULL) {
         cc_channel *next = channel->next_channel;
@@ -129,6 +142,30 @@ static int printsql (int test, char *errmsg, const char * message, ...)
     return test;
 }
 
+static int get_max_id(void *data, int argc, char **argv, char **azColName)
+{
+    int type, i;
+    
+    type = (int)data;
+    
+    
+    // Iterate the arguments to show the query results
+    for(i = 0; i < argc; ++i){
+        if (strncmp(azColName[i], "MAX", 3) == 0 && argv[i]) {
+            if (type == 0) {
+                next_user_id = atoi(argv[i]) + 1;
+            } else if (type == 1) {
+                next_channel_id = atoi(argv[i]) + 1;
+            } else if (type == 2) {
+                next_join_id = atoi(argv[i]) + 1;
+            }
+        }
+    }
+    
+    return 0;
+
+}
+
 void init_db2(sqlite3 *db)
 {
     int status, flags;
@@ -142,7 +179,7 @@ void init_db2(sqlite3 *db)
     db_handle = db;
 
     // Create tables if not present
-    sprintf(querymsg, "CREATE TABLE IF NOT EXISTS users (id INTEGER NOT NULL PRIMARY KEY, nick TEXT, serverid INTEGER)");
+    sprintf(querymsg, "CREATE TABLE IF NOT EXISTS users (id INTEGER NOT NULL PRIMARY KEY, nick TEXT UNIQUE, serverid INTEGER)");
     status = sqlite3_exec(db, querymsg, NULL, NULL, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
     
@@ -150,15 +187,34 @@ void init_db2(sqlite3 *db)
     status = sqlite3_exec(db, querymsg, NULL, NULL, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
     
-    sprintf(querymsg, "CREATE TABLE IF NOT EXISTS channels (id INTEGER NOT NULL PRIMARY KEY, name TEXT, topic TEXT)");
+    sprintf(querymsg, "CREATE TABLE IF NOT EXISTS channels (id INTEGER NOT NULL PRIMARY KEY, name TEXT UNIQUE, topic TEXT)");
     status = sqlite3_exec(db, querymsg, NULL, NULL, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
     
-    sprintf(querymsg, "CREATE TABLE IF NOT EXISTS joined (userid INTEGER NOT NULL, channelid INTEGER NOT NULL, PRIMARY KEY (userid,channelid))");
+    sprintf(querymsg, "CREATE TABLE IF NOT EXISTS joined (joinid INTEGER NOT NULL PRIMARY KEY, userid INTEGER NOT NULL, channelid INTEGER NOT NULL)");
     status = sqlite3_exec(db, querymsg, NULL, NULL, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
     
     // SELECT name FROM sqlite_master WHERE type='table' AND name='table_name';
+    
+    next_channel_id = 0;
+    next_user_id = 0;
+    
+    server_id = 0;
+    
+    // Get possible channel and user ids
+    sprintf(querymsg, "SELECT MAX(id) FROM users");
+    status = sqlite3_exec(db, querymsg, get_max_id, (void*)0, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    sprintf(querymsg, "SELECT MAX(id) FROM channels");
+    status = sqlite3_exec(db, querymsg, get_max_id, (void*)1, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    sprintf(querymsg, "SELECT MAX(id) FROM joined");
+    status = sqlite3_exec(db, querymsg, get_max_id, (void*)2, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
 }
 
 void init_db()
@@ -176,6 +232,32 @@ void close_db()
 
 }
 
+void clear_db()
+{
+    int status;
+    char *errmsg, querymsg[1024];
+
+    // Clear all tables
+    sprintf(querymsg, "DELETE FROM users");
+    status = sqlite3_exec(db_handle, querymsg, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    sprintf(querymsg, "DELETE FROM servers");
+    status = sqlite3_exec(db_handle, querymsg, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    sprintf(querymsg, "DELETE FROM channels");
+    status = sqlite3_exec(db_handle, querymsg, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    sprintf(querymsg, "DELETE FROM joined");
+    status = sqlite3_exec(db_handle, querymsg, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    next_channel_id = 0;
+    next_user_id = 0;
+}
+
 /*
  *  Search functions
  */
@@ -189,6 +271,7 @@ static int user_callback(void *data, int argc, char **argv, char **azColName){
     user_ptr = (cc_user **)data;
     
     user = malloc(sizeof(cc_user));
+    user->next_user = NULL;
     *user_ptr = user;
     
     // Iterate the arguments to show the query results
@@ -199,7 +282,7 @@ static int user_callback(void *data, int argc, char **argv, char **azColName){
             user->user_id = atoi(argv[i]);
         }
         else if (strcmp(azColName[i], "nick") == 0 && argv[i]) {
-            size_t len = strlen(argv[i]);
+            size_t len = strlen(argv[i]) + 1;
             user->nick_len = len;
             user->nick = malloc(sizeof(char) * len);
             strncpy(user->nick, argv[i], len);
@@ -264,6 +347,7 @@ static int channel_callback(void *data, int argc, char **argv, char **azColName)
     channel_ptr = (cc_channel **)data;
     
     channel = malloc(sizeof(cc_channel));
+    channel->next_channel = NULL;
     *channel_ptr = channel;
     
     // Iterate the arguments to show the query results
@@ -274,13 +358,13 @@ static int channel_callback(void *data, int argc, char **argv, char **azColName)
             channel->channel_id = atoi(argv[i]);
         }
         else if (strcmp(azColName[i], "name") == 0 && argv[i]) {
-            size_t len = strlen(argv[i]);
+            size_t len = strlen(argv[i]) + 1;
             channel->name_len = len;
             channel->name = malloc(sizeof(char) * len);
             strncpy(channel->name, argv[i], len);
         }
         else if (strcmp(azColName[i], "topic") == 0 && argv[i]) {
-            size_t len = strlen(argv[i]);
+            size_t len = strlen(argv[i]) + 1;
             channel->topic_len = len;
             channel->topic = malloc(sizeof(char) * len);
             strncpy(channel->topic, argv[i], len);
@@ -341,6 +425,7 @@ static int multi_user_callback(void *data, int argc, char **argv, char **azColNa
     user_ptr = (cc_user **)data;
     
     user = malloc(sizeof(cc_user));
+    user->next_user = NULL;
     
     // Set first user
     if (user_ptr[0] == NULL) {
@@ -357,16 +442,16 @@ static int multi_user_callback(void *data, int argc, char **argv, char **azColNa
     for(i = 0; i < argc; ++i){
         //printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
         
-        if (strcmp(azColName[i], "ju.id") == 0 && argv[i]) {
+        if ((strcmp(azColName[i], "ju.id") == 0 || strcmp(azColName[i], "id") == 0) && argv[i]) {
             user->user_id = atoi(argv[i]);
         }
-        else if (strcmp(azColName[i], "ju.nick") == 0 && argv[i]) {
-            size_t len = strlen(argv[i]);
+        else if ((strcmp(azColName[i], "ju.nick") == 0 || strcmp(azColName[i], "nick") == 0) && argv[i]) {
+            size_t len = strlen(argv[i]) + 1;
             user->nick_len = len;
             user->nick = malloc(sizeof(char) * len);
             strncpy(user->nick, argv[i], len);
         }
-        else if (strcmp(azColName[i], "ju.serverid") == 0 && argv[i]) {
+        else if ((strcmp(azColName[i], "ju.serverid") == 0 || strcmp(azColName[i], "serverid") == 0) && argv[i]) {
             user->server_id = atoi(argv[i]);
         }
     }
@@ -420,6 +505,29 @@ cc_user * get_users_by_channel_name(const char *channel_name)
     return user;
 }
 
+cc_user * get_all_users()
+{
+    int status;
+    char *errmsg;
+    char query[256];
+    cc_user **user_ptr;
+    
+    user_ptr = malloc(sizeof(cc_user*) * 2);
+    user_ptr[0] = NULL;
+    user_ptr[1] = NULL;
+    
+    // Find the user by id
+    sprintf(query, "SELECT * FROM users");
+    status = sqlite3_exec(db_handle, query, multi_user_callback, (void*)user_ptr, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    // TODO: Cannot handle db threading
+    cc_user *user = *user_ptr;
+    free(user_ptr);
+    
+    return user;
+}
+
 static int multi_channel_callback(void *data, int argc, char **argv, char **azColName){
     int i;
     cc_channel **channel_ptr;
@@ -428,6 +536,7 @@ static int multi_channel_callback(void *data, int argc, char **argv, char **azCo
     channel_ptr = (cc_channel **)data;
     
     channel = malloc(sizeof(cc_channel));
+    channel->next_channel = NULL;
     
     // Set first user
     if (channel_ptr[0] == NULL) {
@@ -444,17 +553,17 @@ static int multi_channel_callback(void *data, int argc, char **argv, char **azCo
     for(i = 0; i < argc; ++i){
         //printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
         
-        if (strcmp(azColName[i], "channels.id") == 0 && argv[i]) {
+        if ((strcmp(azColName[i], "channels.id") == 0 || strcmp(azColName[i], "id") == 0) && argv[i]) {
             channel->channel_id = atoi(argv[i]);
         }
-        else if (strcmp(azColName[i], "channels.name") == 0 && argv[i]) {
-            size_t len = strlen(argv[i]);
+        else if ((strcmp(azColName[i], "channels.name") == 0 || strcmp(azColName[i], "name") == 0) && argv[i]) {
+            size_t len = strlen(argv[i]) + 1;
             channel->name_len = len;
             channel->name = malloc(sizeof(char) * len);
             strncpy(channel->name, argv[i], len);
         }
-        else if (strcmp(azColName[i], "channels.topic") == 0 && argv[i]) {
-            size_t len = strlen(argv[i]);
+        else if ((strcmp(azColName[i], "channels.topic") == 0 || strcmp(azColName[i], "topic") == 0) && argv[i]) {
+            size_t len = strlen(argv[i]) + 1;
             channel->topic_len = len;
             channel->topic = malloc(sizeof(char) * len);
             strncpy(channel->topic, argv[i], len);
@@ -508,4 +617,85 @@ cc_channel * get_channels_of_user_nick(const char *user_nick)
     
     return channel;
 }
+
+cc_channel * get_all_channels()
+{
+    int status;
+    char *errmsg;
+    char query[256];
+    cc_channel **channel_ptr;
+    
+    channel_ptr = malloc(sizeof(cc_channel*) * 2);
+    channel_ptr[0] = NULL;
+    channel_ptr[1] = NULL;
+    
+    // Find the channel by id
+    sprintf(query, "SELECT * FROM channels AS channels");
+    status = sqlite3_exec(db_handle, query, multi_channel_callback, (void*)channel_ptr, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    cc_channel *channel = *channel_ptr;
+    free(channel_ptr);
+    
+    return channel;
+}
+
+int add_user(const char *nick)
+{
+    int status;
+    char *errmsg;
+    char query[256];
+    
+    // Add user nick
+    sprintf(query, "INSERT INTO users VALUES(%lu, '%s', %d)", next_user_id++, nick, server_id);
+    status = sqlite3_exec(db_handle, query, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+
+    return status;
+}
+
+int add_channel(const char *name)
+{
+    int status;
+    char *errmsg;
+    char query[256];
+    
+    // Add channel name
+    sprintf(query, "INSERT INTO channels VALUES(%lu, '%s', '')", next_channel_id++, name);
+    status = sqlite3_exec(db_handle, query, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    return status;
+}
+
+int join_channel(const char *user_nick, const char *channel_name)
+{
+    int status;
+    char *errmsg;
+    char query[512];
+    
+    // Find the channel by id
+    sprintf(query, "INSERT INTO joined (joinid, userid, channelid) SELECT %lu, users.id, channels.id FROM users LEFT OUTER JOIN channels ON 1 = 1 WHERE users.nick LIKE '%s' AND channels.name LIKE '%s'", next_channel_id++, user_nick, channel_name);
+    status = sqlite3_exec(db_handle, query, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    return status;
+
+}
+
+int part_channel(const char *user_nick, const char *channel_name)
+{
+    int status;
+    char *errmsg;
+    char query[512];
+    
+    // Find the channel by id
+    sprintf(query, "DELETE FROM joined WHERE joinid IN (SELECT joinid FROM (joined INNER JOIN users ON users.id = joined.userid) AS ju INNER JOIN channels ON ju.channelid = channels.id WHERE ju.nick LIKE '%s' AND channels.name LIKE '%s')", user_nick, channel_name);
+    status = sqlite3_exec(db_handle, query, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    return status;
+}
+
+int set_channel_topic(const char *channel_name, const char *topic);
 

@@ -40,6 +40,8 @@ void print_channel_list(cc_channel *channel);
 void init_db();                 // Will initialize the db (create if not present and load)
 void init_db2(sqlite3 *db);     // Will initialize the db (create if not present and load)
 
+void clear_db();
+
 void close_db();                // Will close the db in use
 
 // Search functions
@@ -55,22 +57,14 @@ cc_user * get_users_by_channel_name(const char *channel_name);
 cc_channel * get_channels_of_user_id(int);
 cc_channel * get_channels_of_user_nick(const char *);
 
-// TODO: what functions do we need
-/*
- Examples:
- 
- struct user get_user(const char *id);
- struct channel get_channel(const char *id);
- 
- int add_user(struct user u);
- int add_channel(struct channel c);
- 
- int remove_user(const char *id);
- int remove_channel(const char *id);
- 
- void list_users(const char *channel_id, function callback);
- etc...
- 
- */
+cc_user * get_all_users();
+cc_channel * get_all_channels();
+
+// Insert functions
+int add_user(const char *nick);
+int add_channel(const char *name);
+int join_channel(const char *user_nick, const char *channel_name);
+int part_channel(const char *user_nick, const char *channel_name);
+int set_channel_topic(const char *channel_name, const char *topic);
 
 #endif /* defined(__Chachat__db__) */
