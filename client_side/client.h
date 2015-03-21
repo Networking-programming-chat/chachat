@@ -1,5 +1,5 @@
-#ifndef CLIENT_H 
-#define CLIENT_H
+#ifndef CHACHAT_CLIENT_H 
+#define CHACHAT_CLIENT_H
 
 #include <sys/socket.h>
 #include "../networking/netproto.h"
