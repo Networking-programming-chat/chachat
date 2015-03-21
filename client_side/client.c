@@ -1,60 +1,78 @@
-//return: the sock desciptor of connection
 #include "client.h"
-#include <stdio.h>
-#include <sys/socket.h> //socket.
-#include <strings.h> //bzero
-#include <netdb.h> // addrinfo
-#include <unistd.h> //close
+#include "../networking/netproto.h"
 
 
-/*void print_address(const struct addrinfo *res){//this function is based on lecture example
 
-char outbuf[80];
-struct sockaddr_in *sin = (struct sockaddr_in *)res->ai_addr;
-struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)res->ai_addr;
-void *address;
-if (res->ai_family == AF_INET)
-address = &(sin->sin_addr);
-else if (res->ai_family == AF_INET6)
-address = &(sin6->sin6_addr);
-else {
-printf("Unknown address\n");
-return;
-}
-//struct sockaddr_in *sin = (struct sockaddr_in *)res->ai_addr;
-const char *ret = inet_ntop(res->ai_family, address,
-outbuf, sizeof(outbuf));
-printf("%s\n",ret);
-}*/
+int client(const char *servName, const char *servPort) {
 
-int client_connect(const char *servName, const char *servPort){
-int n,sockfd;
-struct addrinfo hints, *res,*ressave;
-bzero(&hints, sizeof(struct addrinfo));
-hints.ai_family = AF_UNSPEC;
-hints.ai_socktype = SOCK_STREAM;
-if ( (n = getaddrinfo(servName, servPort, &hints, &res)) != 0) {
-fprintf(stderr, "client error for %s, %s: %s\n",
-servName, servPort, gai_strerror(n));
-return -1;
+char nick_name[MAX];
+int connect, nickSend, cas;
+Msgheader clientsChat;
+char sentMsg[MAXMSG], recvMsg[MAXMSG], command[10], name[MAX_NICKLEN];
+
+	if ((connect=client_connect(servName, servPort))<0) {
+		perror("tcp connection error\n");
+	return -1;
+	}
+	
+	
+	//set content to zero
+	memset(&clientsChat, 0, sizeof(clientsChat));
+    //check if sending nick to the server was successful
+	if((nickSend = client_nick(connect, nick_name)) < 0){
+		printf("There is problem writing nickname to the server\n");
+	}else{
+	    
+	    clientsChat.firstbyte='0';
+		clientsChat.msglen=0;
+		clientsChat.recipient_id="0";
+		clientsChat.sender_id=nick_name;
+		memset(sentMsg, 0, sizeof(sentMsg));
+		
+		//prints the chat rules and handles the switch condition
+	    cas=printChatRule(command, name);
+		
+		switch(cas){
+		
+		case 1:
+		    //set message header fields appropriately
+			clientsChat.firstbyte='1';
+			clientsChat.msglen=strlen(command);
+			clientsChat.sender_id=nick_name;
+			clientsChat.recipient_id=name;
+			//private chat function
+			chatMessageHandle(connect, sentMsg, recvMsg, command, clientsChat);
+
+			break;
+		case 2:
+		    //set message header fields appropriately
+			clientsChat.firstbyte='2';
+			clientsChat.msglen=strlen(command);
+			clientsChat.sender_id=nick_name;
+			clientsChat.recipient_id=name;
+			//channel chat function
+			chanMessageHandle(connect, sentMsg, recvMsg, command, clientsChat);
+			
+			break;
+		case 3:
+		    //set message header fields appropriately
+			clientsChat.firstbyte='3';
+			clientsChat.msglen=0;
+			clientsChat.sender_id=nick_name;
+			clientsChat.recipient_id="0";
+			//function to quit chatting
+			quitMessageHandle(connect, command, clientsChat);
+			
+			break;
+			
+		default:	
+			printf("That was an invalid input, try reconnecting :)\n");
+			return -1;
+		}
+	}	
+	
+
+return 0;
 }
-ressave = res;
-do {
-sockfd = socket(res->ai_family, res->ai_socktype,
-res->ai_protocol);
-if (sockfd < 0)
-continue; /* ignore this one */
-if (connect(sockfd, res->ai_addr, res->ai_addrlen) == 0)
-break; /* success */
-close(sockfd); /* ignore this one */
-} while ( (res = res->ai_next) != NULL);
-if (res == NULL) { /* errno set from final connect() */
-fprintf(stderr, "tcp_connect error for %s, %s\n", servName, servPort);
-sockfd = -1;
-} else {
-printf("connect to server success\n");
-}
-//print_address(res);
-freeaddrinfo(ressave);
-return(sockfd);
-}
+
+   
