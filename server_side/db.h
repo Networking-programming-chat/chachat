@@ -33,8 +33,9 @@ void free_cc_channel(cc_channel *channel);
 
 // Test functions for printing data
 void print_user(cc_user* user);
+void print_user_list(cc_user* user);
 void print_channel(cc_channel *channel);
-
+void print_channel_list(cc_channel *channel);
 
 void init_db();                 // Will initialize the db (create if not present and load)
 void init_db2(sqlite3 *db);     // Will initialize the db (create if not present and load)
@@ -42,11 +43,17 @@ void init_db2(sqlite3 *db);     // Will initialize the db (create if not present
 void close_db();                // Will close the db in use
 
 // Search functions
-cc_user * get_user_nick(const char *);
-cc_user * get_user_id(int);
+cc_user * get_user_by_nick(const char *);
+cc_user * get_user_by_id(int);
 
-cc_channel * get_channel_name(const char *);
-cc_channel * get_channel_id(int);
+cc_channel * get_channel_by_name(const char *);
+cc_channel * get_channel_by_id(int);
+
+cc_user * get_users_by_channel_id(int);
+cc_user * get_users_by_channel_name(const char *channel_name);
+
+cc_channel * get_channels_of_user_id(int);
+cc_channel * get_channels_of_user_nick(const char *);
 
 // TODO: what functions do we need
 /*

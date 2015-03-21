@@ -16,9 +16,6 @@ typedef void (*db_channel_callback)(cc_channel*);
 
 static sqlite3 *db_handle;
 
-// TODO: think about threading
-static int query_answered;
-
 
 void free_cc_user(cc_user *user)
 {
@@ -49,12 +46,50 @@ void free_cc_channel(cc_channel *channel)
 
 void print_user(cc_user* user)
 {
+    if (user == NULL) {
+        printf("No user data to print\n");
+        return;
+    }
+    
     printf("User data:\nid: %d\nnick: %s\nserverid: %d\n", user->user_id, user->nick, user->server_id);
+}
+
+void print_user_list(cc_user* user)
+{
+    if (user == NULL) {
+        printf("No user data to print\n");
+        return;
+    }
+    
+    printf("User data:\nid: %d\nnick: %s\nserverid: %d\n", user->user_id, user->nick, user->server_id);
+    
+    if (user->next_user != NULL) {
+        print_user_list(user->next_user);
+    }
 }
 
 void print_channel(cc_channel *channel)
 {
+    if (channel == NULL) {
+        printf("No channel data to print\n");
+        return;
+    }
+    
     printf("Channel data:\nid: %d\nname: %s\ntopic: %s\n", channel->channel_id, channel->name, channel->topic);
+}
+
+void print_channel_list(cc_channel *channel)
+{
+    if (channel == NULL) {
+        printf("No channel data to print\n");
+        return;
+    }
+    
+    printf("Channel data:\nid: %d\nname: %s\ntopic: %s\n", channel->channel_id, channel->name, channel->topic);
+
+    if (channel->next_channel != NULL) {
+        print_channel_list(channel->next_channel);
+    }
 }
 
 // Function to test a condition
@@ -174,11 +209,10 @@ static int user_callback(void *data, int argc, char **argv, char **azColName){
         }
     }
     
-    printf("\n");
     return 0;
 }
 
-cc_user * get_user_nick(const char *nick)
+cc_user * get_user_by_nick(const char *nick)
 {
     int status;
     char *errmsg;
@@ -200,7 +234,7 @@ cc_user * get_user_nick(const char *nick)
     return user;
 }
 
-cc_user * get_user_id(int user_id)
+cc_user * get_user_by_id(int user_id)
 {
     int status;
     char *errmsg;
@@ -253,12 +287,11 @@ static int channel_callback(void *data, int argc, char **argv, char **azColName)
         }
     }
     
-    printf("\n");
     return 0;
 }
 
 
-cc_channel * get_channel_name(const char *name)
+cc_channel * get_channel_by_name(const char *name)
 {
     int status;
     char *errmsg;
@@ -279,7 +312,7 @@ cc_channel * get_channel_name(const char *name)
     return channel;
 }
 
-cc_channel * get_channel_id(int channel_id)
+cc_channel * get_channel_by_id(int channel_id)
 {
     int status;
     char *errmsg;
@@ -300,5 +333,179 @@ cc_channel * get_channel_id(int channel_id)
     return channel;
 }
 
+static int multi_user_callback(void *data, int argc, char **argv, char **azColName){
+    int i;
+    cc_user **user_ptr;
+    cc_user *user;
+    
+    user_ptr = (cc_user **)data;
+    
+    user = malloc(sizeof(cc_user));
+    
+    // Set first user
+    if (user_ptr[0] == NULL) {
+        user_ptr[0] = user;
+    }
+    
+    // Update linked list
+    if (user_ptr[1] != NULL) {
+        (user_ptr[1])->next_user = user;
+    }
+    user_ptr[1] = user;
+    
+    // Iterate the arguments to show the query results
+    for(i = 0; i < argc; ++i){
+        //printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+        
+        if (strcmp(azColName[i], "ju.id") == 0 && argv[i]) {
+            user->user_id = atoi(argv[i]);
+        }
+        else if (strcmp(azColName[i], "ju.nick") == 0 && argv[i]) {
+            size_t len = strlen(argv[i]);
+            user->nick_len = len;
+            user->nick = malloc(sizeof(char) * len);
+            strncpy(user->nick, argv[i], len);
+        }
+        else if (strcmp(azColName[i], "ju.serverid") == 0 && argv[i]) {
+            user->server_id = atoi(argv[i]);
+        }
+    }
+    
+    return 0;
+}
 
+cc_user * get_users_by_channel_id(int channel_id)
+{
+    int status;
+    char *errmsg;
+    char query[256];
+    cc_user **user_ptr;
+    
+    user_ptr = malloc(sizeof(cc_user*) * 2);
+    user_ptr[0] = NULL;
+    user_ptr[1] = NULL;
+    
+    // Find the user by id
+    sprintf(query, "SELECT ju.id, ju.nick, ju.serverid FROM (users INNER JOIN joined ON users.id = joined.userid) AS ju INNER JOIN channels ON ju.channelid = channels.id WHERE channels.id = %d", channel_id);
+    status = sqlite3_exec(db_handle, query, multi_user_callback, (void*)user_ptr, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    // TODO: Cannot handle db threading
+    cc_user *user = *user_ptr;
+    free(user_ptr);
+    
+    return user;
+}
+
+cc_user * get_users_by_channel_name(const char *channel_name)
+{
+    int status;
+    char *errmsg;
+    char query[256];
+    cc_user **user_ptr;
+    
+    user_ptr = malloc(sizeof(cc_user*) * 2);
+    user_ptr[0] = NULL;
+    user_ptr[1] = NULL;
+    
+    // Find the user by id
+    sprintf(query, "SELECT ju.id, ju.nick, ju.serverid FROM (users INNER JOIN joined ON users.id = joined.userid) AS ju INNER JOIN channels ON ju.channelid = channels.id WHERE channels.name LIKE '%s'", channel_name);
+    status = sqlite3_exec(db_handle, query, multi_user_callback, (void*)user_ptr, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    // TODO: Cannot handle db threading
+    cc_user *user = *user_ptr;
+    free(user_ptr);
+    
+    return user;
+}
+
+static int multi_channel_callback(void *data, int argc, char **argv, char **azColName){
+    int i;
+    cc_channel **channel_ptr;
+    cc_channel *channel;
+    
+    channel_ptr = (cc_channel **)data;
+    
+    channel = malloc(sizeof(cc_channel));
+    
+    // Set first user
+    if (channel_ptr[0] == NULL) {
+        channel_ptr[0] = channel;
+    }
+    
+    // Update linked list
+    if (channel_ptr[1] != NULL) {
+        (channel_ptr[1])->next_channel = channel;
+    }
+    channel_ptr[1] = channel;
+
+    // Iterate the arguments to show the query results
+    for(i = 0; i < argc; ++i){
+        //printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+        
+        if (strcmp(azColName[i], "channels.id") == 0 && argv[i]) {
+            channel->channel_id = atoi(argv[i]);
+        }
+        else if (strcmp(azColName[i], "channels.name") == 0 && argv[i]) {
+            size_t len = strlen(argv[i]);
+            channel->name_len = len;
+            channel->name = malloc(sizeof(char) * len);
+            strncpy(channel->name, argv[i], len);
+        }
+        else if (strcmp(azColName[i], "channels.topic") == 0 && argv[i]) {
+            size_t len = strlen(argv[i]);
+            channel->topic_len = len;
+            channel->topic = malloc(sizeof(char) * len);
+            strncpy(channel->topic, argv[i], len);
+        }
+    }
+    
+    return 0;
+}
+
+
+cc_channel * get_channels_of_user_id(int user_id)
+{
+    int status;
+    char *errmsg;
+    char query[256];
+    cc_channel **channel_ptr;
+    
+    channel_ptr = malloc(sizeof(cc_channel*) * 2);
+    channel_ptr[0] = NULL;
+    channel_ptr[1] = NULL;
+    
+    // Find the channel by id
+    sprintf(query, "SELECT channels.id, channels.name, channels.topic FROM (users INNER JOIN joined ON users.id = joined.userid) AS ju INNER JOIN channels ON ju.channelid = channels.id WHERE ju.id = %d;", user_id);
+    status = sqlite3_exec(db_handle, query, multi_channel_callback, (void*)channel_ptr, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    cc_channel *channel = *channel_ptr;
+    free(channel_ptr);
+    
+    return channel;
+}
+
+cc_channel * get_channels_of_user_nick(const char *user_nick)
+{
+    int status;
+    char *errmsg;
+    char query[256];
+    cc_channel **channel_ptr;
+    
+    channel_ptr = malloc(sizeof(cc_channel*) * 2);
+    channel_ptr[0] = NULL;
+    channel_ptr[1] = NULL;
+    
+    // Find the channel by id
+    sprintf(query, "SELECT channels.id, channels.name, channels.topic FROM (users INNER JOIN joined ON users.id = joined.userid) AS ju INNER JOIN channels ON ju.channelid = channels.id WHERE ju.nick LIKE '%s';", user_nick);
+    status = sqlite3_exec(db_handle, query, multi_channel_callback, (void*)channel_ptr, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    cc_channel *channel = *channel_ptr;
+    free(channel_ptr);
+    
+    return channel;
+}
 
