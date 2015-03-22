@@ -191,7 +191,7 @@ void init_db2(sqlite3 *db)
     status = sqlite3_exec(db, querymsg, NULL, NULL, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
     
-    sprintf(querymsg, "CREATE TABLE IF NOT EXISTS joined (joinid INTEGER NOT NULL PRIMARY KEY, userid INTEGER NOT NULL, channelid INTEGER NOT NULL)");
+    sprintf(querymsg, "CREATE TABLE IF NOT EXISTS joined (joinid INTEGER NOT NULL UNIQUE, userid INTEGER NOT NULL, channelid INTEGER NOT NULL, PRIMARY KEY(userid, channelid))");
     status = sqlite3_exec(db, querymsg, NULL, NULL, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
     
@@ -211,7 +211,7 @@ void init_db2(sqlite3 *db)
     status = sqlite3_exec(db, querymsg, get_max_id, (void*)1, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
     
-    sprintf(querymsg, "SELECT MAX(id) FROM joined");
+    sprintf(querymsg, "SELECT MAX(joinid) FROM joined");
     status = sqlite3_exec(db, querymsg, get_max_id, (void*)2, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
     
@@ -674,8 +674,8 @@ int join_channel(const char *user_nick, const char *channel_name)
     char *errmsg;
     char query[512];
     
-    // Find the channel by id
-    sprintf(query, "INSERT INTO joined (joinid, userid, channelid) SELECT %lu, users.id, channels.id FROM users LEFT OUTER JOIN channels ON 1 = 1 WHERE users.nick LIKE '%s' AND channels.name LIKE '%s'", next_channel_id++, user_nick, channel_name);
+    // Add user and channel to joined
+    sprintf(query, "INSERT INTO joined (joinid, userid, channelid) SELECT %lu, users.id, channels.id FROM users LEFT OUTER JOIN channels ON 1 = 1 WHERE users.nick LIKE '%s' AND channels.name LIKE '%s'", next_join_id++, user_nick, channel_name);
     status = sqlite3_exec(db_handle, query, NULL, NULL, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
     
@@ -689,7 +689,7 @@ int part_channel(const char *user_nick, const char *channel_name)
     char *errmsg;
     char query[512];
     
-    // Find the channel by id
+    // Remove line from joined
     sprintf(query, "DELETE FROM joined WHERE joinid IN (SELECT joinid FROM (joined INNER JOIN users ON users.id = joined.userid) AS ju INNER JOIN channels ON ju.channelid = channels.id WHERE ju.nick LIKE '%s' AND channels.name LIKE '%s')", user_nick, channel_name);
     status = sqlite3_exec(db_handle, query, NULL, NULL, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
@@ -697,5 +697,58 @@ int part_channel(const char *user_nick, const char *channel_name)
     return status;
 }
 
-int set_channel_topic(const char *channel_name, const char *topic);
+int remove_user(const char *nick)
+{
+    int status;
+    char *errmsg;
+    char query[512];
+    
+    // Remove all lines for the user from joined and the line from users
+    sprintf(query, "DELETE FROM joined WHERE joinid IN (SELECT joinid FROM (joined INNER JOIN users ON users.id = joined.userid) AS ju WHERE ju.nick LIKE '%s'); DELETE FROM users WHERE nick LIKE '%s'", nick, nick);
+    status = sqlite3_exec(db_handle, query, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    return status;
+}
 
+int remove_channel(const char *channel_name)
+{
+    int status;
+    char *errmsg;
+    char query[512];
+    
+    // Remove all lines for the channel from joined and the line from channels
+    sprintf(query, "DELETE FROM joined WHERE joinid IN (SELECT joinid FROM joined AS INNER JOIN channels ON joined.channelid = channels.id WHERE channels.name LIKE '%s'); DELETE FROM channels WHERE name LIKE '%s'", channel_name, channel_name);
+    status = sqlite3_exec(db_handle, query, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    return status;
+}
+
+int set_channel_topic(const char *channel_name, const char *topic)
+{
+    int status;
+    char *errmsg;
+    char query[512];
+    
+    // Change topic
+    sprintf(query, "UPDATE channels SET topic='%s' WHERE name LIKE '%s'", topic, channel_name);
+    status = sqlite3_exec(db_handle, query, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    return status;
+}
+
+int change_nick(const char *current_nick, const char *new_nick)
+{
+    int status;
+    char *errmsg;
+    char query[512];
+    
+    // Change nick
+    sprintf(query, "UPDATE users SET nick='%s' WHERE nick LIKE '%s'", new_nick, current_nick);
+    status = sqlite3_exec(db_handle, query, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    return status;
+}

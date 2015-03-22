@@ -61,10 +61,17 @@ cc_user * get_all_users();
 cc_channel * get_all_channels();
 
 // Insert functions
-int add_user(const char *nick);
-int add_channel(const char *name);
+int add_user(const char *user_nick);
+int add_channel(const char *channel_name);
 int join_channel(const char *user_nick, const char *channel_name);
+
+// Remove functions
 int part_channel(const char *user_nick, const char *channel_name);
+int remove_user(const char *user_nick);
+int remove_channel(const char *channel_name);
+
+// Edit functions
 int set_channel_topic(const char *channel_name, const char *topic);
+int change_nick(const char *current_nick, const char *new_nick);
 
 #endif /* defined(__Chachat__db__) */
