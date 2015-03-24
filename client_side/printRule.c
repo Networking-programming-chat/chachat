@@ -44,16 +44,26 @@ int startChat( char *getCmd, char *getName){
 					cas=3;
 					printf(" You would like to quit chating ? \n");
 					inpCnt = 0;
-				}else if((strcmp(cmd,"chat")!=0) || (strcmp(cmd,"join")!=0) || (strcmp(cmd,"quit")!=0) ){
-					printChatRule(cmd);
+				}else if((cas!=1 || cas!=2 || cas!=3 || strlen(cmd)!=4 )){
+					printf("Invalid command!\n");
+					printChatRule();
+					memset(command, 0, sizeof(command));
+					memset(cmd, 0, sizeof(cmd));
 					inpCnt--;
+					if(inpCnt==0){
+						printf("The command is invalid!");
+					}
 				}
 				
 				
+			
 			}else{
-				
-				printChatRule(cmd);
-				inpCnt--;
+				printf("The name is too long and doesn't exist\n");
+				printChatRule();
+				memset(command, 0, sizeof(command));
+				memset(cmd, 0, sizeof(cmd));
+				memset(name, 0, sizeof(name));
+				return -1;
 			}
 		 }
 		
@@ -67,9 +77,7 @@ int startChat( char *getCmd, char *getName){
  return cas;
 }
 
-void printChatRule(char *wrongCmd){
-	
-	printf("%s is not recognized\n",wrongCmd);
+void printChatRule(){
 	
 	printf("###########################################################\n");
 	printf("The following are standard rules:\n");
