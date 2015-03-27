@@ -23,6 +23,9 @@ int remove_buffer(int client_id);
 // Returned message is malloced, should be freed after consumed
 char* read_buffer(int client_id);
 
+// Like previous, but will block until there is a new message to read
+char* read_buffer_block(int client_id);
+
 // When sending messages to other clients, threads use this method to write to client buffer
 // That client's connection thread will read the message from that buffer
 // Message will be copied to a new malloced memory address in the heap

@@ -12,7 +12,7 @@
 #include <inttypes.h>
 #include "msg_buffers.h"
 
-#define SPAM_THREAD_COUNT 5
+#define SPAM_THREAD_COUNT 1
 
 void print_line(char *line)
 {
@@ -109,7 +109,7 @@ void *spam_thread(void *arg) {
         sprintf(msg, "Spam message #%d", i);
         status = write_to_buffer(buffer_id, msg);
         if (status > 0) {
-            printf("Spam message fail: %d\n", status);
+            printf("Spam message fail: %d item: %d\n", status, i);
         }
     }
 
@@ -157,6 +157,8 @@ void thread_test()
         
         printf("Joined thread %d\n", i + 1);
     }
+    
+    clear_all_msg_buffers();
 }
 
 int main(int argc, const char * argv[]) {

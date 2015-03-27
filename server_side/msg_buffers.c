@@ -41,11 +41,20 @@ void m_unlock(pthread_mutex_t *m) {
     check_ims(pthread_mutex_unlock(m), "mutex unlock failed");
 }
 
+void c_wait(pthread_cond_t *c, pthread_mutex_t *m) {
+    check_ims(pthread_cond_wait(c, m), "condition variable wait failed");
+}
+
+void c_broadcast(pthread_cond_t *c) {
+    check_ims(pthread_cond_broadcast(c), "condition variable broadcast failed");
+}
+
 typedef struct message_buffer {
     int client_id;
     unsigned int first_line;
     unsigned int line_count;
     pthread_mutex_t buffer_access;
+    pthread_cond_t read_cond;
     char *buffer[BUFFER_LINE_AMOUNT];
     
     // TODO: linked list may not be the most effective solution here
@@ -73,7 +82,8 @@ int new_buffer(int client_id)
     item->next_buffer       = NULL;
     
     check_ims(pthread_mutex_init(&(item->buffer_access), NULL), "mutex init failed");
-    
+    check_ims(pthread_cond_init(&(item->read_cond), NULL), "condition variable init failed");
+
     if (first_buffer == NULL) {
         first_buffer = item;
         last_buffer = item;
@@ -102,7 +112,8 @@ void free_buffer(msg_buffer *item)
     }
     
     check_ims(pthread_mutex_destroy(&(item->buffer_access)), "mutex destroy failed");
-    
+    check_ims(pthread_cond_destroy(&(item->read_cond)), "condition variable destroy failed");
+
     free(item);
 }
 
@@ -151,7 +162,7 @@ void clear_all_msg_buffers()
     }
 }
 
-char* read_buffer(int client_id)
+char* read_buffer_internal(int client_id, int block)
 {
     msg_buffer *item = first_buffer;
     
@@ -177,8 +188,17 @@ char* read_buffer(int client_id)
     
     if (item->line_count <= 0) {
         // No lines to read
-        m_unlock(&(item->buffer_access));
-        return NULL;
+        
+        if (block == 0) {
+            // Do not block, just return
+            m_unlock(&(item->buffer_access));
+            return NULL;
+        }
+        
+        // Block until there is a signal of a new message
+        while (item->line_count <= 0) {
+            c_wait(&(item->read_cond), &(item->buffer_access));
+        }
     }
     
     // Get the first line in the buffer
@@ -198,6 +218,16 @@ char* read_buffer(int client_id)
     m_unlock(&(item->buffer_access));
     
     return line;
+}
+
+char* read_buffer(int client_id)
+{
+    return read_buffer_internal(client_id, 0);
+}
+
+char* read_buffer_block(int client_id)
+{
+    return read_buffer_internal(client_id, 1);
 }
 
 int write_to_buffer(int client_id, const char* message)
@@ -246,6 +276,9 @@ int write_to_buffer(int client_id, const char* message)
     
     // Add line to bookkeeping
     item->line_count ++;
+    
+    // Broadcast the addition of a line
+    c_broadcast(&(item->read_cond));
     
     // Release mutex
     m_unlock(&(item->buffer_access));
