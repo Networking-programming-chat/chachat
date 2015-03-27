@@ -30,7 +30,7 @@ char sentMsg[MAXMSG], recvMsg[MAXMSG], command[10], name[MAX_NICKLEN];
 		memset(sentMsg, 0, sizeof(sentMsg));
 		
 		//prints the chat rules and handles the switch condition
-	    cas=printChatRule(command, name);
+	    cas=startChat(command, name);
 		
 		switch(cas){
 		
@@ -40,7 +40,7 @@ char sentMsg[MAXMSG], recvMsg[MAXMSG], command[10], name[MAX_NICKLEN];
 			clientsChat.msglen=strlen(command);
 			clientsChat.sender_id=nick_name;
 			clientsChat.recipient_id=name;
-			//private chat function
+			//private chat function called
 			chatMessageHandle(connect, sentMsg, recvMsg, command, clientsChat);
 
 			break;
@@ -50,7 +50,7 @@ char sentMsg[MAXMSG], recvMsg[MAXMSG], command[10], name[MAX_NICKLEN];
 			clientsChat.msglen=strlen(command);
 			clientsChat.sender_id=nick_name;
 			clientsChat.recipient_id=name;
-			//channel chat function
+			//channel chat function called
 			chanMessageHandle(connect, sentMsg, recvMsg, command, clientsChat);
 			
 			break;
@@ -60,13 +60,13 @@ char sentMsg[MAXMSG], recvMsg[MAXMSG], command[10], name[MAX_NICKLEN];
 			clientsChat.msglen=0;
 			clientsChat.sender_id=nick_name;
 			clientsChat.recipient_id="0";
-			//function to quit chatting
+			//function to quit chatting called
 			quitMessageHandle(connect, command, clientsChat);
 			
 			break;
 			
 		default:	
-			printf("That was an invalid input, try reconnecting :)\n");
+			printf(" The user doesn't exist, try again later. Thank you :)\n");
 			return -1;
 		}
 	}	
