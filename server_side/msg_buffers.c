@@ -5,16 +5,47 @@
 
 #include <stdlib.h>
 #include <stdio.h>  // printf
+#include <pthread.h>
+#include <stdarg.h> // va_
+#include <errno.h>
 #include <string.h>
 #include "msg_buffers.h"
 
 #define BUFFER_LINE_AMOUNT 10
 
+// Function to test a condition
+static void check_ims (int test, const char * message, ...)
+{
+    if (test) {
+        va_list args;
+        
+        // Iterate the arguments
+        va_start (args, message);
+        vfprintf (stderr, message, args);
+        va_end (args);
+        
+        // Print error message to stderr
+        fprintf (stderr, ": %s\n", strerror(errno));
+        
+        // Failure
+        exit (1);
+    }
+}
+
+void m_lock(pthread_mutex_t *m) {
+    check_ims(pthread_mutex_lock(m), "mutex lock failed");
+}
+
+void m_unlock(pthread_mutex_t *m) {
+    sched_yield();
+    check_ims(pthread_mutex_unlock(m), "mutex unlock failed");
+}
+
 typedef struct message_buffer {
     int client_id;
     unsigned int first_line;
-    unsigned int unused_line;
     unsigned int line_count;
+    pthread_mutex_t buffer_access;
     char *buffer[BUFFER_LINE_AMOUNT];
     
     // TODO: linked list may not be the most effective solution here
@@ -38,9 +69,10 @@ int new_buffer(int client_id)
     
     item->client_id         = client_id;
     item->first_line        = 0;
-    item->unused_line       = 0;
     item->line_count        = 0;
     item->next_buffer       = NULL;
+    
+    check_ims(pthread_mutex_init(&(item->buffer_access), NULL), "mutex init failed");
     
     if (first_buffer == NULL) {
         first_buffer = item;
@@ -68,6 +100,9 @@ void free_buffer(msg_buffer *item)
             free(item->buffer[i]);
         }
     }
+    
+    check_ims(pthread_mutex_destroy(&(item->buffer_access)), "mutex destroy failed");
+    
     free(item);
 }
 
@@ -135,10 +170,14 @@ char* read_buffer(int client_id)
         return NULL;
     }
     
+    // Get mutex to access buffer items
+    m_lock(&(item->buffer_access));
+    
     // Find the next line to read from this buffer
     
     if (item->line_count <= 0) {
         // No lines to read
+        m_unlock(&(item->buffer_access));
         return NULL;
     }
     
@@ -154,6 +193,9 @@ char* read_buffer(int client_id)
     if (item->first_line >= BUFFER_LINE_AMOUNT) {
         item->first_line = 0;
     }
+    
+    // Release mutex
+    m_unlock(&(item->buffer_access));
     
     return line;
 }
@@ -180,9 +222,13 @@ int write_to_buffer(int client_id, const char* message)
         return 1;
     }
    
+    // Get mutex to access buffer items
+    m_lock(&(item->buffer_access));
+    
     // Check if there is room to write a line
     if (item->line_count >= BUFFER_LINE_AMOUNT) {
         // Buffer is full
+        m_unlock(&(item->buffer_access));
         return 2;
     }
     
@@ -191,6 +237,7 @@ int write_to_buffer(int client_id, const char* message)
     msg_len = strlen(message);
     item->buffer[slot] = malloc(sizeof(char) * msg_len + 1);
     if (item->buffer[slot] == NULL) {
+        m_unlock(&(item->buffer_access));
         return 3;
     }
     
@@ -199,6 +246,9 @@ int write_to_buffer(int client_id, const char* message)
     
     // Add line to bookkeeping
     item->line_count ++;
+    
+    // Release mutex
+    m_unlock(&(item->buffer_access));
     
     return 0;
 }
