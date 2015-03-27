@@ -1,5 +1,5 @@
-#ifndef CHACHAT_CLIENT_H 
-#define CHACHAT_CLIENT_H
+#ifndef CLIENT_H 
+#define CLIENT_H
 
 #include <sys/socket.h>
 #include "../networking/netproto.h"
@@ -17,7 +17,10 @@
 int client(const char *servName, const char *servPort);
 
 //prints chat rules and help
-int printChatRule(char *getCmd, char *getName);
+void printChatRule();
+
+//handles input at the start of chat 
+int startChat(char *getCmd, char *getName);
 
 //handles the client's nickname
 int client_nick(int sockfd, char *nickname);
