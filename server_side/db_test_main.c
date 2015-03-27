@@ -62,7 +62,7 @@ int main(int argc, const char * argv[]) {
     //change_nick("Troop", "Madden2");
 
     cc_user * user_list = get_all_users(); // get_users_by_channel_name("nfl");
-    cc_channel * channel_list = get_channels_of_user_nick("devon");
+    cc_channel * channel_list = get_all_channels(); // get_channels_of_user_nick("devon");
     
     print_user_list(user_list);
     printf("\n");
