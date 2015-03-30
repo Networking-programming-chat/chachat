@@ -22,8 +22,9 @@ int main(int argc, const char * argv[]) {
     struct sockaddr *cliaddr=NULL;
     
     char *mesbuff,*nickname;
-    mesbuff=malloc(MAXMSG*sizeof(char)+1);
-    Msgheader mesheader;
+    mesbuff=(char *)malloc(MAXMSG*sizeof(char)+1);
+    Msgheader *mesheader;
+    mesheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
     
     // Initialize database
     init_db();
@@ -55,24 +56,24 @@ int main(int argc, const char * argv[]) {
     
    // while (1) {
         
-        memset(&mesheader, 0, sizeof(mesheader));
-        memset(&mesbuff, 0, sizeof(mesbuff));
+        memset(mesheader, 0, sizeof(mesheader));
+        memset(mesbuff, 0, sizeof(mesbuff));
         
-        if(read_message(connfd, mesbuff, &mesheader)<0){
+        if(read_message(connfd, mesbuff, mesheader)<0){
             perror("read from client error\n");
             return -1;
         }
         
-        if (mesheader.firstbyte=='1') {//client sends private chat message
-            chatMessageHandle(connfd, mesbuff, &mesheader);
+        if (mesheader->firstbyte=='1') {//client sends private chat message
+            chatMessageHandle(connfd, mesbuff, mesheader);
             
             
-        }else if (mesheader.firstbyte=='2') {//client sends channel chat message
-            chanMessageHandle(connfd,mesbuff,&mesheader);
+        }else if (mesheader->firstbyte=='2') {//client sends channel chat message
+            chanMessageHandle(connfd,mesbuff,mesheader);
             
             
-        } else if (mesheader.firstbyte=='3') {//client sends quit command
-            quitMessageHandle(connfd,mesbuff,&mesheader);
+        } else if (mesheader->firstbyte=='3') {//client sends quit command
+            quitMessageHandle(connfd,mesbuff,mesheader);
             
             
         } else{

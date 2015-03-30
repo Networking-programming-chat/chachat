@@ -100,7 +100,7 @@ int main(int argc, const char * argv[]) {
     
     Msgheader header;
     
-    header.firstbyte='0';
+    header.firstbyte='1';
     header.msglen=strlen(message);
     header.recipient_id=recipient;
     header.sender_id=nickname;
