@@ -62,6 +62,7 @@ cc_channel * get_all_channels();
 
 // Insert functions
 int add_user(const char *user_nick);
+cc_user * add_user_server(const char *user_nick, int server_id);
 int add_channel(const char *channel_name);
 int join_channel(const char *user_nick, const char *channel_name);
 

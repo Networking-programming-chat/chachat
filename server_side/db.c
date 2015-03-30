@@ -173,7 +173,7 @@ void init_db2(sqlite3 *db)
     
     // Open / create database
     flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI;
-    status = sqlite3_open_v2("file:test.db", &db, flags, NULL);
+    status = sqlite3_open_v2("file:chachat.db", &db, flags, NULL);
     checksql(status, db, "sqlite3_open_v2 error");
     
     db_handle = db;
@@ -286,6 +286,7 @@ static int user_callback(void *data, int argc, char **argv, char **azColName){
             user->nick_len = len;
             user->nick = malloc(sizeof(char) * len);
             strncpy(user->nick, argv[i], len);
+            user->nick[len-1] = '\0';
         }
         else if (strcmp(azColName[i], "serverid") == 0 && argv[i]) {
             user->server_id = atoi(argv[i]);
@@ -362,12 +363,14 @@ static int channel_callback(void *data, int argc, char **argv, char **azColName)
             channel->name_len = len;
             channel->name = malloc(sizeof(char) * len);
             strncpy(channel->name, argv[i], len);
+            channel->name[len-1] = '\0';
         }
         else if (strcmp(azColName[i], "topic") == 0 && argv[i]) {
             size_t len = strlen(argv[i]) + 1;
             channel->topic_len = len;
             channel->topic = malloc(sizeof(char) * len);
             strncpy(channel->topic, argv[i], len);
+            channel->topic[len-1] = '\0';
         }
     }
     
@@ -450,6 +453,7 @@ static int multi_user_callback(void *data, int argc, char **argv, char **azColNa
             user->nick_len = len;
             user->nick = malloc(sizeof(char) * len);
             strncpy(user->nick, argv[i], len);
+            user->nick[len-1] = '\0';
         }
         else if ((strcmp(azColName[i], "ju.serverid") == 0 || strcmp(azColName[i], "serverid") == 0) && argv[i]) {
             user->server_id = atoi(argv[i]);
@@ -561,12 +565,14 @@ static int multi_channel_callback(void *data, int argc, char **argv, char **azCo
             channel->name_len = len;
             channel->name = malloc(sizeof(char) * len);
             strncpy(channel->name, argv[i], len);
+            channel->name[len-1] = '\0';
         }
         else if ((strcmp(azColName[i], "channels.topic") == 0 || strcmp(azColName[i], "topic") == 0) && argv[i]) {
             size_t len = strlen(argv[i]) + 1;
             channel->topic_len = len;
             channel->topic = malloc(sizeof(char) * len);
             strncpy(channel->topic, argv[i], len);
+            channel->topic[len-1] = '\0';
         }
     }
     
@@ -640,18 +646,62 @@ cc_channel * get_all_channels()
     return channel;
 }
 
-int add_user(const char *nick)
+int add_user(const char *user_nick)
 {
     int status;
+    unsigned long id;
     char *errmsg;
     char query[256];
     
+    id = next_user_id++;
+
     // Add user nick
-    sprintf(query, "INSERT INTO users VALUES(%lu, '%s', %d)", next_user_id++, nick, server_id);
+    sprintf(query, "INSERT INTO users VALUES(%lu, '%s', %d)", id, user_nick, server_id);
     status = sqlite3_exec(db_handle, query, NULL, NULL, &errmsg);
     printsql(status, errmsg, "sqlite3_exec fail");
 
     return status;
+}
+
+cc_user * add_user_server(const char *user_nick, int server)
+{
+    int status;
+    unsigned long id;
+    char *errmsg;
+    size_t len;
+    char query[256];
+    cc_user *user_data;
+    
+    id = next_user_id++;
+    
+    // Add user nick
+    sprintf(query, "INSERT INTO users VALUES(%lu, '%s', %d)", id, user_nick, server);
+    status = sqlite3_exec(db_handle, query, NULL, NULL, &errmsg);
+    printsql(status, errmsg, "sqlite3_exec fail");
+    
+    // Create the struct for return
+    if (status != SQLITE_OK) {
+        return NULL;
+    }
+    
+    // Setup new user
+    user_data = malloc(sizeof(cc_user));
+    user_data->next_user = NULL;
+    
+    // Set nick
+    len = strlen(user_nick) + 1;
+    user_data->nick_len = len;
+    user_data->nick = malloc(sizeof(char) * len);
+    strncpy(user_data->nick, user_nick, len);
+    user_data->nick[len-1] = '\0';
+    
+    // Set server
+    user_data->server_id = server;
+    
+    // Set id
+    user_data->user_id = (int)id;
+
+    return user_data;
 }
 
 int add_channel(const char *name)
