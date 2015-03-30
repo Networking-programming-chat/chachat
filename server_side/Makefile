@@ -18,6 +18,9 @@ dbtest:
 threadtest:
 	$(CC) -o threadtest $(CFLAGS) thread_test_main.c msg_buffers.c -pthread
 
+servtest:
+	$(CC) -o servertest $(CFLAGS) servermain.c db.c serv.c netproto.c msg_buffers.c -pthread -L./ -lsqlite -ldl
+
 cleanobjects:
 	rm -f *.o
 
