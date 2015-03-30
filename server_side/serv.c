@@ -4,8 +4,9 @@
 #include <netdb.h> // addrinfo
 #include <unistd.h> //close
 #include <arpa/inet.h> //inet_ntop
-#include "serv.h"
 
+#include "serv.h"
+#include "db.h"
 
 
 
@@ -86,6 +87,7 @@ void print_address(const struct addrinfo *res)//this function is based on lectur
 
 char* client_nick(int socket){
     char nickname[MAX_NICKLEN];
+    int v;
     ssize_t n1;
     
     bzero(nickname, sizeof(nickname));
@@ -98,6 +100,12 @@ char* client_nick(int socket){
 	
     
     /*---check if the nickname is already used-----*/
+    v = add_user(nickname);
+    
+    if (v != 0) {
+        printf("Nickname already in use.\n");
+    }
+    
     /*----The nickname is stored in char nickname[]------*/
     /*--If already used, return 1, if not, return 0*/
     
