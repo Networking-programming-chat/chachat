@@ -75,7 +75,6 @@ and after 3 trials, return to connection window. No, server allocates a unique I
 
 //Not in this phase 4. server->server, synchronize the database between servers.
 
-
 5. Every time the client parse the UI input. Private message’s format ”/chat @destination messagebody“. Other Command like quit format ”/quit”, “/join channel name”.
 
    Then the client fills the header Mesghheader. If it is normal message, set the “firstbyte” to ‘0’; If it is command, set the “firstbyte” to ‘2’. And the recipent_id is 20 bytes of 0. The command content (remove the slash) is included in messagebody. And sends it to the server.
@@ -104,6 +103,20 @@ If yes, sends the message to the destination client.
 
 client sends "broadcast" message to all people in the channel: the server check the client's channel, and finds all other clients who in the same channel. 
 Forwards the message to their servers.
+
+##Database
+
+Unit tests to test the database usage functions
+
+- To compile, run `make dbtest` in server_side
+- To run, run the `dbtest` binary
+
+## Inter-thread communication
+
+Unit tests to test the inter-thread communication module
+
+- To compile, run `make threadtest` in server_side
+- To run, run the `threadtest` binary
 
 #8. Distribution of work
 - Jussi: Databases on servers, threading
