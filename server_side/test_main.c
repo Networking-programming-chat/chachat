@@ -21,14 +21,12 @@ int main(int argc, const char * argv[]) {
     socklen_t clilen;
     struct sockaddr *cliaddr=NULL;
     
-    char *mesbuff;
+    char *mesbuff,*nickname;
     mesbuff=malloc(MAXMSG*sizeof(char)+1);
     Msgheader mesheader;
-   // mesheader=malloc(sizeof(Msgheader)); //this sizeof has sizes of nick pointers.
     
     // Initialize database
     init_db();
-    
     
     //open listenfd for clients
     if (argc==2)
@@ -48,64 +46,47 @@ int main(int argc, const char * argv[]) {
         perror("accept error\n");
         return -1;
     }
-	
-	//set content to zero
-	memset(&mesheader, 0, sizeof(mesheader));
-    mesheader.firstbyte='0';
-	mesheader.msglen=0;
-	mesheader.recipient_id="0";
-    mesheader.sender_id=client_nick(connfd);
+		
     
-    // for (; ; ) {
-    /* if(read_message(connfd,mesbuff,mesheader)<0){
-        perror("read_message pox!\n");
+    if((nickname=client_nick(connfd))==NULL){
+        printf("client set nick name error\n");
         return -1;
-    } */
-	//printf("----header-----\n");
-	printf("firstbyte set to: %c\n", mesheader.firstbyte);
-	printf("msglen: %u\n", mesheader.msglen);
-	printf("sender: %s", mesheader.sender_id);
-	printf("recipient: %s\n",mesheader.recipient_id);
-    //print_hdr(&mesheader);
-	
-	memset(&mesbuff, 0, sizeof(mesbuff));
-	/* if(read(connfd,mesbuff,sizeof(mesbuff))<0){
-        perror("read_message box!\n");
-        return -1;
-	}	 */
-	read_message(connfd, mesbuff, &mesheader);
-	
-	
-		    
-	/* if (strcmp(mesbuff,"chat")==0) {//client sends private chat message
-			printf(" private chat from %s  :)\n", mesheader.sender_id);
-			chatMessageHandle(connfd, mesbuff, &mesheader); */
+    }
     
-	if (mesheader.firstbyte=='1') {//client sends channel chat message 
-		chatMessageHandle(connfd, mesbuff, &mesheader);
-	
-    
-   }else if (mesheader.firstbyte=='2') {//client sends channel chat message 
-		chanMessageHandle(connfd,mesbuff,&mesheader);
-				
-				
-   } else if (mesheader.firstbyte=='3') {//client sends channel chat message
-		quitMessageHandle(connfd,mesbuff,&mesheader);
-			
-			
-   } else{
-		printf("There must be error somewhere arrgh :(\n");
-				
-	}
-    
-	 
-    
-
-    
+   // while (1) {
         
-   // }
+        memset(&mesheader, 0, sizeof(mesheader));
+        memset(&mesbuff, 0, sizeof(mesbuff));
+        
+        if(read_message(connfd, mesbuff, &mesheader)<0){
+            perror("read from client error\n");
+            return -1;
+        }
+        
+        if (mesheader.firstbyte=='1') {//client sends private chat message
+            chatMessageHandle(connfd, mesbuff, &mesheader);
+            
+            
+        }else if (mesheader.firstbyte=='2') {//client sends channel chat message
+            chanMessageHandle(connfd,mesbuff,&mesheader);
+            
+            
+        } else if (mesheader.firstbyte=='3') {//client sends quit command
+            quitMessageHandle(connfd,mesbuff,&mesheader);
+            
+            
+        } else{
+            printf("There must be error somewhere arrgh \n");
+            
+        }
+  //  }
+    
+    
+    
+    close_db();
+    
     free(mesbuff);
-    //free_hdr(&mesheader);
+    
     return 0;
 
     

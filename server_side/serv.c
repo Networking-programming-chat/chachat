@@ -7,7 +7,7 @@
 
 #include "serv.h"
 #include "db.h"
-
+#include "msg_buffers.h"
 
 
 
@@ -87,86 +87,88 @@ void print_address(const struct addrinfo *res)//this function is based on lectur
 
 char* client_nick(int socket){
     char nickname[MAX_NICKLEN];
-    int v;
+    char response[50];
+    int v,i=0,flag=1;
     ssize_t n1;
     
-    bzero(nickname, sizeof(nickname));
-    if ((n1=read(socket,nickname, sizeof(nickname)))<0) {
-        printf("read client name error\n");
-        return -1;
+    do {
+        flag=1;
+        bzero(nickname, sizeof(nickname));
+        if ((n1=read(socket,nickname, sizeof(nickname)))<0) {
+            printf("read client name error\n");
+            return NULL;
+        }
+        
+        printf("sender's_id is %s\n", nickname);
+        
+        v = add_user(nickname);
+        
+        if (v != 0) {
+            printf("Nickname already in use.\n");
+            sprintf(response,"Nickname already in use\n");
+            
+            if ((n1=write(socket,response,sizeof(response)))<0) {
+                printf("write nickname response to client fail\n");
+                return NULL;
+            }
+            
+            flag=0;
+            i++;
+        }
+
+    }while (flag==0&&i<3);
+    
+    if (i==3) {
+        sprintf(response,"Nickname set times out\n");
+        return NULL;
     }
-	
-    printf("sender's_id is %s\n", nickname);
-	
-    
-    /*---check if the nickname is already used-----*/
-    v = add_user(nickname);
-    
-    if (v != 0) {
-        printf("Nickname already in use.\n");
+    if (flag==1) {
+        sprintf(response,"Nickname set success\n");
+        if ((n1=write(socket,response,sizeof(response)))<0) {
+            printf("write nickname response to client fail\n");
+            return NULL;
+        }
+        return nickname;
     }
     
-    /*----The nickname is stored in char nickname[]------*/
-    /*--If already used, return 1, if not, return 0*/
-    
-    return nickname;
 }
 
-//Handling client's normal chat message
+
 void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
-    char *dest;
     
-	if (strncmp(mesbuff, "chat", 4)) {//join command
-        printf("chat command!\n");
+    cc_user *destuser;
+    
+    destuser=get_user_by_nick(mesheader->recipient_id);
+    //what if there is no such user
+    
+    printf("dest: %s",mesheader->recipient_id);
+    
+    write_to_buffer(destuser->user_id, mesbuff);
         
-        /*-------------Update the channle information of the client-------------------*/
-        /*---------argument: from (source id), *mesbuff (channel)------*/
-    }
-	
-    dest=mesheader->recipient_id;
-    printf("destination client:%s\n",dest);
-    /*----check database if the destination exists and the server it connected----*/
-    /*------given the argument dest, it is a char pointer------*/
-    /*----Write the message to the dest server-----*/
-    /*-----If the dest doesn't exit,return "Destination don't exit"----*/
-    
-    //Write the message to the server
-    
+
 }
 
-//Handling client's channel join command message
-void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){
+void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join channel message
     
-    char *from;
-    from=mesheader->sender_id;//source id
+    cc_user * user_list;
     
+    user_list=get_all_users();
     
-    if (strncmp(mesbuff, "join", 4)) {//join command
-        printf("join command!\n");
-        
-        /*-------------Update the channle information of the client-------------------*/
-        /*---------argument: from (source id), *mesbuff (channel)------*/
-    }
+    print_user_list(user_list);
+    printf("\n");
     
     
 }
+    
 
-//Handling client's quite command message
-void quitMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){
+
+void quitMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){//quit command
     
-    char *from;
-    from=mesheader->sender_id;//source id
+    printf("quit command\n");
     
-    if (strncmp(mesbuff, "quit", 4)){//quit command
-        printf("quit command!");
-        
-        /*--------delete client's information in database------*/
-        /*--------The argument is from pointer which is the source--------*/
-        
-        close(connfd);
-    }
+    remove_user(mesheader->sender_id);
     
-    
+    close(connfd);
     
 }
 

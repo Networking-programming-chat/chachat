@@ -10,7 +10,7 @@ sqlite:
 	ar -cvq libsqlite.a sqlite3.o
 
 ccserv:
-	$(CC) -o ccserv $(CFLAGS) test_main.c db.c serv.c netproto.c -pthread -L./ -lsqlite -ldl
+	$(CC) -o ccserv $(CFLAGS) test_main.c db.c serv.c netproto.c msg_buffers.c -pthread -L./ -lsqlite -ldl
 
 dbtest:
 	$(CC) -o dbtest $(CFLAGS) db_test_main.c db.c -pthread -L./ -lsqlite -ldl
@@ -25,6 +25,6 @@ cleanobjects:
 	rm -f *.o
 
 clean:
-	rm -f ${PROGS} *~ *.a
+	rm -f ${PROGS} *~ *.a *.db
 
 .PHONY: dbtest threadtest all clean

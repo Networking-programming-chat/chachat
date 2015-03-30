@@ -90,17 +90,20 @@ int tcp_connect(const char *host, const char *serv)//This function is borrowed f
 
 
 int main(int argc, const char * argv[]) {
+    
+    char response[20];
  
-    char nickname[20]="nickname";
+    char nickname[20]="Hello4";
+    
     char recipient[20]="recipient";
-    char dest[20]="destination";
     char message[]="hello";
+    
     Msgheader header;
     
     header.firstbyte='0';
     header.msglen=strlen(message);
     header.recipient_id=recipient;
-    header.sender_id=dest;
+    header.sender_id=nickname;
     
     
     int socked;
@@ -117,6 +120,9 @@ int main(int argc, const char * argv[]) {
         perror("write nickname wrong\n");
         return -1;
     }
+    
+    read(socked,response,sizeof(response));
+    printf("response\n",response);
     
     if ((n1=pass_message(socked, message, &header))<0) {
         perror("pass_message\n");
