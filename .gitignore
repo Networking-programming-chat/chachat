@@ -36,6 +36,8 @@ server
 tester
 testserver
 testclient
+client
+prototorturer
 
 
 # Databases
