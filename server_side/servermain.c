@@ -12,6 +12,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#include <netdb.h>
 
 
 #include "serv.h"
@@ -23,13 +24,15 @@
 typedef struct thread_struct {
 	pthread_t thread_id;
 	int socketfd;
-}
+} thread_s;
 
 
 thread_s pool[THREAD_COUNT];
 pthread_mutex_t accept_lock = PTHREAD_MUTEX_INITIALIZER;
 
-void process_connection(int);
+void process_connection(int i)
+{
+}
 
 void *conn_thread (void *arg)
 {
@@ -39,12 +42,12 @@ void *conn_thread (void *arg)
 	struct sockaddr cliaddr;
 	socklen_t clisize;
 	
-	self = *(thread_s)arg;
+	self = *(thread_s*)arg;
 	listenfd = self.socketfd;
 	
 	for (;;) {
 		pthread_mutex_lock(&accept_lock);
-		connfd = accept(listenfd, (struct sockaddr) &cliaddr, &clisize);
+		connfd = accept(listenfd, (struct sockaddr *) &cliaddr, &clisize);
 		pthread_mutex_unlock(&accept_lock);
 		
 		if (connfd < 0) {
@@ -60,7 +63,7 @@ void *conn_thread (void *arg)
 //type ip address(or not), port number.
 void thread_make(long i, int fd){
 	int status;
-	pool[i].sockfd = fd;
+	pool[i].socketfd = fd;
 	
 	status = pthread_create(&pool[i].thread_id, NULL, conn_thread, &pool[i]);
 	if(status != 0)
@@ -73,7 +76,6 @@ void thread_make(long i, int fd){
 
 int main(int argc, const char * argv[]) {
     int listenfd,connfd,n;
-    int connfd;
     socklen_t clilen;
     struct sockaddr *cliaddr=NULL;
    
@@ -89,9 +91,9 @@ int main(int argc, const char * argv[]) {
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    if ( (n = getaddrinfo("localhost", argv[1], &hints, &res)) != 0) {
-            fprintf(stderr, "tcp_listen error for localhost, %s: %s",
-                             serv, gai_strerror(n));
+    if ( (n = getaddrinfo(argv[1], argv[2], &hints, &res)) != 0) {
+            fprintf(stderr, "tcp_listen error for %s, %s: %s", argv[1],
+                             argv[2], gai_strerror(n));
 		return -1;
 	}
         ressave = res;
@@ -109,7 +111,7 @@ int main(int argc, const char * argv[]) {
         } while ( (res = res->ai_next) != NULL);
 
         if (res == NULL) {        /* errno from final socket() or bind() */
-            fprintf(stderr, "tcp_listen error for %s, %s", host, serv);
+            fprintf(stderr, "tcp_listen error for %s, %s", argv[1], argv[2]);
             return -1;
         }
 
@@ -124,7 +126,19 @@ int main(int argc, const char * argv[]) {
     
     freeaddrinfo(ressave);
     for (n = 0;n<THREAD_COUNT;n++){
-    	thead_make(n, listenfd);
+    	thread_make(n, listenfd);
+    }
+    
+    // Join all threads
+    for (n = 0; n < THREAD_COUNT; n++) {
+    	void *thread_result;
+    	int s;
+    	
+    	s = pthread_join(pool[n].thread_id, &thread_result);
+    	
+    	if (s != 0) {
+    		perror("thread join");
+    	}
     }
     
 	return 0;
