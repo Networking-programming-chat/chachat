@@ -8,9 +8,11 @@
 
 #include <stdio.h>
 #include <stdlib.h> // malloc, free
-#include "serv.h"
 #include <unistd.h> //read
+#include <string.h>
 
+#include "serv.h"
+#include "db.h"
 
 //type ip address(or not), port number.
 int main(int argc, const char * argv[]) {
@@ -23,6 +25,10 @@ int main(int argc, const char * argv[]) {
     mesbuff=malloc(MAXMSG*sizeof(char)+1);
     Msgheader mesheader;
    // mesheader=malloc(sizeof(Msgheader)); //this sizeof has sizes of nick pointers.
+    
+    // Initialize database
+    init_db();
+    
     
     //open listenfd for clients
     if (argc==2)
@@ -62,7 +68,7 @@ int main(int argc, const char * argv[]) {
 	printf("recipient: %s\n",mesheader.recipient_id);
     //print_hdr(&mesheader);
 	
-	memset(mesbuff, 0, sizeof(mesbuff));
+	memset(&mesbuff, 0, sizeof(mesbuff));
 	/* if(read(connfd,mesbuff,sizeof(mesbuff))<0){
         perror("read_message box!\n");
         return -1;
