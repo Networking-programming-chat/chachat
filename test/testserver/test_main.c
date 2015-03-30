@@ -46,10 +46,12 @@ int main(int argc, const char * argv[]) {
     client_nick(connfd);
         
     
-	// for (; ; ) {
-	if(read_message(connfd,mesbuff,mesheader)<0){
-		perror("read_message pox!\n");
-		return -1;
+	for (; ; ) {
+		printf("calling server read\n");
+		if(server_read(connfd,mesbuff,mesheader)<0){
+			perror("server_read pox!\n");
+			return -1;
+		}
 	}
 	printf("message buffer %s\n",mesbuff);
 
