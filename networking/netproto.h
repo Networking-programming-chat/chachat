@@ -12,7 +12,7 @@
 
 //the universal msgheader, firstbyte sets action, recipient field, sender field, plus the message length, aka. bytes to read after.
 typedef struct{
-	char firstbyte;				//0x00 == normal message, 0x01 == channel, 0x02 == command!, 0x03 == something else
+	char firstbyte;				
 	uint16_t msglen;			//truncate messages to fit 16bit ~65k chars.
 	char* recipient_id;			//nick specified, "nulled 20byte array"
 	char* sender_id;			//nick specified, "nulled 20byte array"
