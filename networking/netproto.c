@@ -39,7 +39,7 @@ void buffer_to_hdr(char *str, Msgheader* hdr)
 	
 	s_len_p = (uint16_t*)&str[1];	//parsing messagelength uint16_t from source. bytes [1], [2].
 	s_len = ntohs(*s_len_p);
-	printf("setting msglen to: %hu\n", s_len);
+	//printf("setting msglen to: %hu\n", s_len);
 	a=&str[3];		//recipient_id
 	b=&str[23];		//sender_id
 	
@@ -49,12 +49,17 @@ void buffer_to_hdr(char *str, Msgheader* hdr)
 	hdr->sender_id = strndup(b, MAX_NICKLEN);
 }
 
+void free_hdr(Msgheader *hdr)
+{
+	free(hdr->recipient_id);
+	free(hdr->sender_id);
+}
+
 //give it a header, and a buffer[HDRSIZE]. returns the buffer filled, ready for transmission.
 char* serialize_hdr(char* buffer, Msgheader* hdr)
 {
 	uint16_t tmp = htons(hdr->msglen);
 	printf("tmp: %hu\n", tmp);
-	memset(buffer, 0, HDRSIZE);	//redundant zeroing. probably.
 	memset(buffer, hdr->firstbyte, 1);
 	memcpy(&buffer[1], &tmp, 2);//1,2
 	
@@ -65,10 +70,30 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 	return buffer;
 }
 
-void free_hdr(Msgheader *hdr)
-{
-	free(hdr->recipient_id);
-	free(hdr->sender_id);
+
+//take a message body and a header as parameters and, stick them together. returns a pointer to combined string. NULL if weirds.
+char* serialize_everything(char* buffer, Msgheader* hdr){
+	if (!buffer || !hdr)
+		return NULL;
+	char *ret = malloc(((hdr->msglen)+43)*sizeof(char));
+	serialize_hdr(ret, hdr);
+	memcpy(&ret[43], buffer, hdr->msglen);
+	return ret;
+}
+
+
+//get separate message and hdr to given pointers from a serialize_everything()'d chunk. return less than 0 if fails. 
+int split_datas(char* chunk, char* message, Msgheader* hdr){
+	if (!chunk || !hdr || !message)
+		return -1;
+	buffer_to_hdr(chunk, hdr);
+	message=malloc(hdr->msglen*sizeof(char));
+	if(!message){
+		perror("malloc");
+		return -1;
+	}
+	memcpy(message, chunk+43, hdr->msglen);
+	return 0;
 }
 
 //reads messages from socket; thread doesnt know the buffer size needed. Less memory fragmentation? reserve 65k or such :D stack overflow? store header to n;
@@ -92,6 +117,7 @@ int read_message(int fd, char * msg_dest, Msgheader *hdr_dest){
 		return -1;
     }
 	
+	//memset(hdrbuf, 0, HDRSIZE);
 	buffer_to_hdr(hdrbuf, hdr_dest);
 	//read msg; msglen bytes;
 	totbytes=0;n=0;
@@ -106,7 +132,7 @@ int read_message(int fd, char * msg_dest, Msgheader *hdr_dest){
     }
 	buffer[totbytes]=0;
 	printf("read buffer: %s\n", buffer);
-	strncpy(msg_dest, buffer, hdr_dest->msglen);
+	memcpy(msg_dest, buffer, hdr_dest->msglen);
 	return n;
 }
 

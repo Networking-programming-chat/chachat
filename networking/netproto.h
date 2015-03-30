@@ -30,7 +30,13 @@ void free_hdr(Msgheader *hdr);
 //pass in a filled header and an empty buffer to create a transmittable string of length HDRSIZE.
 char* serialize_hdr(char* buffer, Msgheader* hdr);
 
-//read a message from socket, store message to arg2, header to agr3
+//take a message body and a header as parameters and, stick them together. returns a pointer to combined string. NULL if weirds.
+char* serialize_everything(char* buffer, Msgheader* hdr);
+
+//get separate message and hdr to given pointers from a serialize_everything()'d chunk. return less than 0 if fails. NOTE: might not need to copy everything..
+int split_datas(char* chunk, char* message, Msgheader* hdr);
+
+//read a message from socket, store message to arg2, header to agr3. Some header fields are malloc'd, need to be freed with free_hdr before freeing header itself.
 int read_message(int fd, char * msg_dest, Msgheader *hdr_dest);
 
 //writes a normal chat message to socket. Returns message length after succesful forwarding. Header MUST contain the length of attached message for proper function.
