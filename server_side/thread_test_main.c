@@ -12,7 +12,7 @@
 #include <inttypes.h>
 #include "msg_buffers.h"
 
-#define SPAM_THREAD_COUNT 1
+#define SPAM_THREAD_COUNT 5
 
 void print_line(char *line)
 {
