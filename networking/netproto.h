@@ -3,9 +3,11 @@
 
 #include <inttypes.h>
 
+
 #define MAX_NICKLEN 20	//weird and arbitrary, need comments
 #define HDRSIZE 43 // use this
 #define MAXMSG 65535 // maximum message length to be sent around 2^16-1 bytes.
+#define READ_TIMEOUT_USEC 1000
 
 
 //client sends NICKNAME as the first thing after connect
@@ -38,6 +40,9 @@ int split_datas(char* chunk, char* message, Msgheader* hdr);
 
 //read a message from socket, store message to arg2, header to agr3. Some header fields are malloc'd, need to be freed with free_hdr before freeing header itself.
 int read_message(int fd, char * msg_dest, Msgheader *hdr_dest);
+
+//read a message from socket, store message to arg2, header to agr3. Some header fields are malloc'd, need to be freed with free_hdr before freeing header itself. Timeouts after 0.5 seconds and returns 0 if no other errors found.
+int server_read(int fd, char * msg_dest, Msgheader *hdr_dest);
 
 //writes a normal chat message to socket. Returns message length after succesful forwarding. Header MUST contain the length of attached message for proper function.
 int pass_message(int fd, const char * message, Msgheader* hdr);
