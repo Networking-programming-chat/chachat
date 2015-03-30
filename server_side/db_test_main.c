@@ -4,10 +4,13 @@
 
 #include <stdio.h>
 #include "db.h"
+#include "terminal_color.h"
 
 
 int main(int argc, const char * argv[]) {
     int s;
+    
+    printf(COLOR_GRN "Database unit tests\n" COLOR_NRM);
     
     init_db();
     
