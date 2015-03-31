@@ -9,13 +9,12 @@
 #include <stdio.h>
 #include <stdlib.h> // malloc, free
 #include <unistd.h> //read
-#include <string.h>
+//#include <strings.h>
 #include <pthread.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <stdarg.h> // va_
 #include <errno.h>
-
 
 #include "serv.h"
 #include "msg_buffers.h"
@@ -30,7 +29,7 @@ typedef struct thread_struct {
 } thread_s;
 
 // Function to test a condition (will kill program on error for now)
-static void check (int test, const char * message, ...)
+/*static void check (int test, const char * message, ...)
 {
     if (test) {
         va_list args;
@@ -46,7 +45,7 @@ static void check (int test, const char * message, ...)
         // Failure
         exit (1);
     }
-}
+}*/
 
 
 thread_s pool[THREAD_COUNT];
@@ -149,6 +148,8 @@ void process_connection(int sockfd)
             }
         }
     }
+    
+    remove_user(user->nick);
 
     free_cc_user(user);
     
@@ -213,7 +214,7 @@ int main(int argc, const char * argv[]) {
     
     mesbuff = malloc(MAXMSG*sizeof(char)+1);
     
-    bzero(&hints, sizeof(struct addrinfo));
+    memset(&hints, '\0', sizeof(struct addrinfo));
     hints.ai_flags = AI_PASSIVE;
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
