@@ -7,52 +7,52 @@
 
 #include "serv.h"
 #include "db.h"
+#include "msg_buffers.h"
 
 
 
-
- /*This function is borrowed from example
-  *Opening an listened fd.
-  */
+/*This function is borrowed from example
+ *Opening an listened fd.
+ */
 int serv_listen(const char *host, const char *serv){
-        int listenfd, n;
-        const int on = 1;
-        struct addrinfo hints, *res, *ressave;
-
-        bzero(&hints, sizeof(struct addrinfo));
-        hints.ai_flags = AI_PASSIVE;
-        hints.ai_family = AF_UNSPEC;
-        hints.ai_socktype = SOCK_STREAM;
-
-        if ( (n = getaddrinfo(host, serv, &hints, &res)) != 0) {
-                fprintf(stderr, "tcp_listen error for %s, %s: %s",
-                                 host, serv, gai_strerror(n));
-		return -1;
-	}
-        ressave = res;
-
-        do {
-                listenfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-                if (listenfd < 0)
-                        continue;               /* error, try next one */
-
-                setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
-                if (bind(listenfd, res->ai_addr, res->ai_addrlen) == 0)
-                        break;                  /* success */
-
-                close(listenfd);        /* bind error, close and try next one */
-        } while ( (res = res->ai_next) != NULL);
-
-        if (res == NULL) {        /* errno from final socket() or bind() */
-            fprintf(stderr, "tcp_listen error for %s, %s", host, serv);
-            return -1;
-        }
-
+    int listenfd, n;
+    const int on = 1;
+    struct addrinfo hints, *res, *ressave;
+    
+    bzero(&hints, sizeof(struct addrinfo));
+    hints.ai_flags = AI_PASSIVE;
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    
+    if ( (n = getaddrinfo(host, serv, &hints, &res)) != 0) {
+        fprintf(stderr, "tcp_listen error for %s, %s: %s",
+                host, serv, gai_strerror(n));
+        return -1;
+    }
+    ressave = res;
+    
+    do {
+        listenfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+        if (listenfd < 0)
+            continue;               /* error, try next one */
+        
+        setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+        if (bind(listenfd, res->ai_addr, res->ai_addrlen) == 0)
+            break;                  /* success */
+        
+        close(listenfd);        /* bind error, close and try next one */
+    } while ( (res = res->ai_next) != NULL);
+    
+    if (res == NULL) {        /* errno from final socket() or bind() */
+        fprintf(stderr, "tcp_listen error for %s, %s", host, serv);
+        return -1;
+    }
+    
     
     if (listen(listenfd, LISTENQ) < 0) {
-		perror("listen");
-		return -1;
-        }
+        perror("listen");
+        return -1;
+    }
     
     printf("The ip address we are using is: ");
     print_address(res);
@@ -85,88 +85,100 @@ void print_address(const struct addrinfo *res)//this function is based on lectur
 }
 
 
-char* client_nick(int socket){
+int client_nick(int socket,char *nick){
+    
     char nickname[MAX_NICKLEN];
-    int v;
+    char response[50];
+    int v,i=0,flag=1;
     ssize_t n1;
     
-    bzero(nickname, sizeof(nickname));
-    if ((n1=read(socket,nickname, sizeof(nickname)))<0) {
-        printf("read client name error\n");
-        return -1;
+    do {
+        flag=1;
+        if ((n1=read(socket,nickname,sizeof(nickname)))<0) {
+            perror("read client name error\n");
+            return -1;
+        }
+        
+        printf("sender's_id is %s\n", nickname);
+        
+        v = add_user(nickname);
+        
+        if (v != 0) {
+            printf("Nickname already in use.\n");
+            sprintf(response,"Nickname already in use\n");
+            
+            if ((n1=write(socket,response,sizeof(response)))<0) {
+                perror("write nickname response to client fail\n");
+                return -1;
+            }
+            
+            flag=0;
+            i++;
+        }
+        
+    }while (flag==0&&i<3);
+    
+    if (i==3) {
+        sprintf(response,"Nickname set times out\n");
+        return 0;
     }
-	
-    printf("sender's_id is %s\n", nickname);
-	
-    
-    /*---check if the nickname is already used-----*/
-    v = add_user(nickname);
-    
-    if (v != 0) {
-        printf("Nickname already in use.\n");
+    if (flag!=0) {
+        sprintf(response,"Nickname set success\n");
+        if ((n1=write(socket,response,sizeof(response)))<0) {
+            printf("write nickname response to client fail\n");
+            return -1;
+        }
+        
     }
-    
-    /*----The nickname is stored in char nickname[]------*/
-    /*--If already used, return 1, if not, return 0*/
-    
-    return nickname;
+    return 0;
 }
 
-//Handling client's normal chat message
+
 void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
-    char *dest;
+    char response[50];
+    ssize_t n1;
     
-	if (strncmp(mesbuff, "chat", 4)) {//join command
-        printf("chat command!\n");
-        
-        /*-------------Update the channle information of the client-------------------*/
-        /*---------argument: from (source id), *mesbuff (channel)------*/
+    printf("client send private chat message\n");
+    printf("dest: %s",mesheader->recipient_id);
+    
+    cc_user *destuser;
+    
+    destuser=get_user_by_nick(mesheader->recipient_id);
+    
+    if (destuser==NULL) {
+        sprintf(response,"%s doesn't exit!\n",mesheader->recipient_id);
+        if((n1=write(connfd, response, strlen(response)+1))<0){
+            perror("write response to client fail\n");
+            return;
+        }
     }
-	
-    dest=mesheader->recipient_id;
-    printf("destination client:%s\n",dest);
-    /*----check database if the destination exists and the server it connected----*/
-    /*------given the argument dest, it is a char pointer------*/
-    /*----Write the message to the dest server-----*/
-    /*-----If the dest doesn't exit,return "Destination don't exit"----*/
     
-    //Write the message to the server
-    
-}
-
-//Handling client's channel join command message
-void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){
-    
-    char *from;
-    from=mesheader->sender_id;//source id
-    
-    
-    if (strncmp(mesbuff, "join", 4)) {//join command
-        printf("join command!\n");
-        
-        /*-------------Update the channle information of the client-------------------*/
-        /*---------argument: from (source id), *mesbuff (channel)------*/
-    }
+    write_to_buffer(destuser->user_id, mesbuff);
     
     
 }
 
-//Handling client's quite command message
-void quitMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){
+void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join channel message
     
-    char *from;
-    from=mesheader->sender_id;//source id
+    cc_user * user_list;
     
-    if (strncmp(mesbuff, "quit", 4)){//quit command
-        printf("quit command!");
-        
-        /*--------delete client's information in database------*/
-        /*--------The argument is from pointer which is the source--------*/
-        
-        close(connfd);
-    }
+    user_list=get_all_users();
+    
+    print_user_list(user_list);
+    printf("\n");
     
     
+}
+
+
+
+void quitMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){//quit command
+    
+    printf("quit command\n");
+    
+    remove_user(mesheader->sender_id);
+    
+    close(connfd);
     
 }
 

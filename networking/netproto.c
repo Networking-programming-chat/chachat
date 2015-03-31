@@ -5,7 +5,9 @@
 #include <arpa/inet.h>	//htonl
 #include <stdint.h>
 #include <stdio.h>
-#include <errno.h>	
+#include <errno.h>
+#include <sys/time.h>
+#include <sys/select.h>
 
 //NULL if fail, sets errno?
 //RETURN VALUE: ptr to Msgheader struct;
@@ -135,6 +137,66 @@ int read_message(int fd, char * msg_dest, Msgheader *hdr_dest){
 	memcpy(msg_dest, buffer, hdr_dest->msglen);
 	return n;
 }
+
+//read a message from socket, store message to arg2, header to agr3. Some header fields are malloc'd, need to be freed with free_hdr before freeing header itself. Timeouts after 0.5 seconds and returns 0 if no other errors found.
+int server_read(int fd, char * msg_dest, Msgheader *hdr_dest){
+	int totbytes=0,n=0;
+	char hdrbuf[HDRSIZE],buffer[MAXMSG+1];
+	fd_set set;
+	struct timeval timeout;
+	
+	if(!hdr_dest || !msg_dest){
+		fprintf(stderr, "allocate memory for header/messagebuffer!\n");
+		return -1;
+	}
+
+	FD_ZERO(&set); /* clear the set */
+	FD_SET(fd, &set); /* add our file descriptor to the set */
+
+	timeout.tv_sec = 0;
+	timeout.tv_usec = READ_TIMEOUT_USEC;
+
+	//timeouting the read header.
+	n = select(fd + 1, &set, NULL, NULL, &timeout);
+	if(n == -1){
+		perror("select"); /* an error accured */
+		return 0;
+	}
+	else if(n == 0){
+		printf("timeout: checking buffer for data from other thread\n"); /* a timeout occured */
+		return 0;
+	}
+	else{
+		//reading header;
+		while ( (n = read(fd, &hdrbuf[totbytes], HDRSIZE)) > 0) {
+			totbytes += n;
+			if (totbytes >= HDRSIZE) break;
+		}
+	}
+	
+	if (n < 0) {
+	    perror("hdr_read error");
+		return -1;
+	}
+	//memset(hdrbuf, 0, HDRSIZE);
+	buffer_to_hdr(hdrbuf, hdr_dest);
+	//read msg; msglen bytes;
+	totbytes=0;n=0;
+	if(hdr_dest->msglen>MAXMSG) hdr_dest->msglen=MAXMSG;
+	while ( (n = read(fd, &buffer[totbytes], hdr_dest->msglen)) > 0) {
+		totbytes += n;
+		if (totbytes >= hdr_dest->msglen) break;
+	}
+	if (n < 0) {
+        perror("msgread error");
+		return -1;
+    }
+	buffer[totbytes]=0;
+	printf("read buffer: %s\n", buffer);
+	memcpy(msg_dest, buffer, hdr_dest->msglen);
+	return n;
+}
+
 
 //writes a normal chat message to socket, returns pointer to said string; requires set sender_id and recipient_id;
 //header and message can be reused;

@@ -2,7 +2,7 @@
 #define COMMON_H
 
 #include <sys/socket.h>
-#include "../networking/netproto.h"
+#include "netproto.h"
 
 #define LISTENQ 5
 
@@ -21,7 +21,7 @@ void print_address(const struct addrinfo * res);
 int read_nickname(int socket,char *);
 
 /*add client nickname in the database*/
-char* client_nick(int socket);
+int client_nick(int socket,char *nickname);
 
 //Handling client's normal message
 void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader);
