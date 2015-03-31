@@ -65,7 +65,7 @@ void process_connection(int sockfd)
     for (;;) {
         n = read(sockfd, nickname, MAX_NICKLEN - 1);
         if (n < 0) {
-            perror("read error (reading nickname)\n");
+            perror("read error (reading nickname)");
             return;
         }
         
@@ -78,7 +78,7 @@ void process_connection(int sockfd)
             n = write(sockfd,response,sizeof(response));
             
             if (n < 0) {
-                perror("write error (nickname response)\n");
+                perror("write error (nickname response)");
                 return;
             }
             
@@ -101,7 +101,7 @@ void process_connection(int sockfd)
     n = write(sockfd, response, sizeof(response));
     
     if (n < 0) {
-        perror("write error (nickname final response)\n");
+        perror("write error (nickname final response)");
     }
     
     // Register message buffer
@@ -111,19 +111,28 @@ void process_connection(int sockfd)
     
     msec = 200;
     
-    tv.tv_sec = 0;
-    tv.tv_usec = msec * 1000;
+    tv.tv_sec = 1;
+    tv.tv_usec = 0;//msec * 1000;
     
     setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
+    
+    printf("start processing\n");
     
     // Process client messages
     for (;;) {
         char * sendmessage;
         // Read message
-        n = read(sockfd, incoming, 1023);
+        n = recv(sockfd, incoming, 1023, 0);
+        
         if (n < 0) {
-            perror("read error (client processing)\n");
-            break;
+            if (errno != EAGAIN) {
+                perror("read error (client processing)");
+                break;
+            }
+            else {
+                printf("hep");
+            }
+            errno = 0;
         }
         
         incoming[1] = '\0';
@@ -131,12 +140,17 @@ void process_connection(int sockfd)
         if (n > 0) {
             // Handle message sent by client
             write_to_buffer(user->user_id, incoming);
+            printf("Received message: %s\n", incoming);
         }
         
         // Check for messages for client
         sendmessage = read_buffer_block(user->user_id);
         
+        printf("hop");
+        
         if (sendmessage != NULL) {
+            printf("Will send to client: %s\n", sendmessage);
+            
             // Send to client
             n = write(sockfd, sendmessage, strlen(sendmessage));
             
@@ -204,7 +218,7 @@ int main(int argc, const char * argv[]) {
     
     // Check arguments
     if (argc != 3) {
-        printf("Usage: %s [server] [port]\n", argv[0]);
+        printf("Usage: %s [address] [port]\n", argv[0]);
         return 0;
     }
     
