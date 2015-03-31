@@ -95,8 +95,8 @@ int main(int argc, const char * argv[]) {
  
     char nickname[20]="Hello4";
     
-    char recipient[20]="recipient";
-    char message[]="hello";
+    char recipient[20]="Hello5";
+    char message[]="ni hao";
     
     Msgheader header;
     

@@ -47,49 +47,51 @@ int main(int argc, const char * argv[]) {
         perror("accept error\n");
         return -1;
     }
-		
     
-    if((nickname=client_nick(connfd))==NULL){
+    
+    if((client_nick(connfd,nickname))<0){
         printf("client set nick name error\n");
         return -1;
     }
     
-   // while (1) {
+    // while (1) {
+    
+    bzero(mesheader, sizeof(mesheader));
+    bzero(mesbuff, sizeof(mesbuff));
+    
+    if(read_message(connfd, mesbuff, mesheader)<0){
+        perror("read from client error\n");
+        return -1;
+    }
+    
+    if (mesheader->firstbyte=='1') {//client sends private chat message
+        chatMessageHandle(connfd, mesbuff, mesheader);
         
-        memset(mesheader, 0, sizeof(mesheader));
-        memset(mesbuff, 0, sizeof(mesbuff));
         
-        if(read_message(connfd, mesbuff, mesheader)<0){
-            perror("read from client error\n");
-            return -1;
-        }
+    }else if (mesheader->firstbyte=='2') {//client sends channel chat message
+        chanMessageHandle(connfd,mesbuff,mesheader);
         
-        if (mesheader->firstbyte=='1') {//client sends private chat message
-            chatMessageHandle(connfd, mesbuff, mesheader);
-            
-            
-        }else if (mesheader->firstbyte=='2') {//client sends channel chat message
-            chanMessageHandle(connfd,mesbuff,mesheader);
-            
-            
-        } else if (mesheader->firstbyte=='3') {//client sends quit command
-            quitMessageHandle(connfd,mesbuff,mesheader);
-            
-            
-        } else{
-            printf("There must be error somewhere arrgh \n");
-            
-        }
-  //  }
+        
+    } else if (mesheader->firstbyte=='3') {//client sends quit command
+        quitMessageHandle(connfd,mesbuff,mesheader);
+        
+        
+    } else{
+        printf("There must be error somewhere arrgh \n");
+        
+    }
     
     
+    //  }
+    
+    remove_user(nickname);
     
     close_db();
     
     free(mesbuff);
     
     return 0;
-
+    
     
 }
 
