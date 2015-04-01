@@ -61,7 +61,7 @@ void free_hdr(Msgheader *hdr)
 char* serialize_hdr(char* buffer, Msgheader* hdr)
 {
 	uint16_t tmp = htons(hdr->msglen);
-	printf("tmp: %hu\n", tmp);
+	//printf("tmp: %hu\n", tmp);
 	memset(buffer, hdr->firstbyte, 1);
 	memcpy(&buffer[1], &tmp, 2);//1,2
 	
@@ -133,7 +133,7 @@ int read_message(int fd, char * msg_dest, Msgheader *hdr_dest){
 		return -1;
     }
 	buffer[totbytes]=0;
-	printf("read buffer: %s\n", buffer);
+	//printf("read buffer: %s\n", buffer);
 	memcpy(msg_dest, buffer, hdr_dest->msglen);
 	return n;
 }
@@ -163,7 +163,7 @@ int server_read(int fd, char * msg_dest, Msgheader *hdr_dest){
 		return 0;
 	}
 	else if(n == 0){
-		printf("timeout: checking buffer for data from other thread\n"); /* a timeout occured */
+		//printf("timeout: checking buffer for data from other thread\n"); /* a timeout occured */
 		return 0;
 	}
 	else{
@@ -192,7 +192,7 @@ int server_read(int fd, char * msg_dest, Msgheader *hdr_dest){
 		return -1;
     }
 	buffer[totbytes]=0;
-	printf("read buffer: %s\n", buffer);
+	//printf("read buffer: %s\n", buffer);
 	memcpy(msg_dest, buffer, hdr_dest->msglen);
 	return n;
 }
@@ -219,7 +219,7 @@ int pass_message(int fd, const char * message, Msgheader* hdr){
 		hdr->msglen=msgsize;
 	}
 	else msgsize=hdr->msglen;
-	printf("the message is actually %d bytes long\n", hdr->msglen);
+	//printf("the message is actually %d bytes long\n", hdr->msglen);
 
 	//serialize does the byteorders n stuffs.
    	serialize_hdr(hdrbuf, hdr);
