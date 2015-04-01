@@ -25,8 +25,6 @@
 #define BUFSIZE 1024
 #define THREAD_COUNT 128
 
-static char t_msg[BUFSIZE];
-
 typedef struct {
     pthread_t thread_id;
     int socketfd;
@@ -84,6 +82,8 @@ void *reader_thread(void *arg) {
     id = (thread_s*) arg;
     sockfd = id->socketfd;
     
+    printf("reader socket: %d\n", id->socketfd);
+    
     // Busy loop for a while here
     for (;;) {
         n = read(sockfd, buffer, 1023);
@@ -106,14 +106,8 @@ void *reader_thread(void *arg) {
 int handletask(int mainsockfd)
 {
     // This method handles the task after connection is established
-    struct sockaddr_in locaddr, servaddr, cliaddr;
-    char s_msg[BUFSIZE], s_ownaddr[80], recvline[MAXLINE + 1], nick[128];
-    socklen_t lasize, clisize;
-    int status, listenfd, port, maxfd, numfds, nextconn = 0;
-    int32_t connfd;
-    fd_set rset;
+    char recvline[MAXLINE + 1], nick[128];
     ssize_t n;
-    struct timeval tv;
     thread_s *thread;
     void *thread_result;
     
@@ -161,6 +155,15 @@ int handletask(int mainsockfd)
         fgets(nick, 127, stdin);
         
         n = strlen(nick);
+        //printf("message length: %zd\n", n);
+        
+        if (n == 1) {
+            // Only newline
+            continue;
+        }
+        
+        // Set the newline to 0
+        nick[n-1] = '\0';
         
         if (strncmp(nick, "quit", 4) == 0) {
             break;

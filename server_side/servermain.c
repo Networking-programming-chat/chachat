@@ -10,6 +10,7 @@
 #include <stdlib.h> // malloc, free
 #include <unistd.h> //read
 //#include <strings.h>
+#include <string.h>
 #include <pthread.h>
 #include <sys/socket.h>
 #include <sys/select.h>
@@ -154,8 +155,10 @@ void process_connection(int sockfd)
         if (sendmessage != NULL) {
             printf("Will send to client: %s\n", sendmessage);
             
+            n = strlen(sendmessage);
+            
             // Send to client
-            n = write(sockfd, sendmessage, strlen(sendmessage));
+            n = write(sockfd, sendmessage, n+1);
             
             free(sendmessage);
             
