@@ -47,8 +47,12 @@ void buffer_to_hdr(char *str, Msgheader* hdr)
 	
 	hdr->firstbyte = str[0];
 	hdr->msglen = s_len;
-	hdr->recipient_id = strndup(a, MAX_NICKLEN);
-	hdr->sender_id = strndup(b, MAX_NICKLEN);
+
+	hdr->recipient_id = malloc(MAX_NICKLEN*sizeof(char));
+	hdr->sender_id = malloc(MAX_NICKLEN*sizeof(char));
+	
+	hdr->recipient_id = strncpy(hdr->recipient_id, a, MAX_NICKLEN);
+	hdr->sender_id = strncpy(hdr->sender_id, b, MAX_NICKLEN);
 }
 
 void free_hdr(Msgheader *hdr)
