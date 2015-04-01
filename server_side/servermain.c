@@ -12,6 +12,7 @@
 //#include <strings.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netdb.h>
 #include <stdarg.h> // va_
 #include <errno.h>
@@ -57,10 +58,14 @@ void process_connection(int sockfd)
     
     char nickname[MAX_NICKLEN], response[50], incoming[1024];
     
-    int i = 0, msec;
+    int i = 0;
     ssize_t n;
-    struct timeval tv;
+    struct timespec ts;
     cc_user *user;
+    
+    // Select stuff
+    fd_set rset;
+
     
     for (;;) {
         n = read(sockfd, nickname, MAX_NICKLEN - 1);
@@ -107,46 +112,44 @@ void process_connection(int sockfd)
     // Register message buffer
     new_buffer(user->user_id);
     
-    // Setup socket with timeout
-    
-    msec = 200;
-    
-    tv.tv_sec = 1;
-    tv.tv_usec = 0;//msec * 1000;
-    
-    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
-    
     printf("start processing\n");
     
     // Process client messages
     for (;;) {
         char * sendmessage;
-        // Read message
-        n = recv(sockfd, incoming, 1023, 0);
         
-        if (n < 0) {
-            if (errno != EAGAIN) {
-                perror("read error (client processing)");
-                break;
-            }
-            else {
-                printf("hep");
-            }
-            errno = 0;
+        FD_ZERO(&rset);
+        FD_SET(sockfd, &rset);
+        
+        ts.tv_sec = 0;
+        ts.tv_nsec = 200 * 1000000;
+        
+        i = pselect(sockfd + 1, &rset, NULL, NULL, &ts, 0);
+        if (i < 0) {
+            perror("select error");
         }
         
-        incoming[1] = '\0';
-        
-        if (n > 0) {
-            // Handle message sent by client
-            write_to_buffer(user->user_id, incoming);
-            printf("Received message: %s\n", incoming);
+        if (FD_ISSET(sockfd, &rset)) {
+            
+            // Read message
+            n = recv(sockfd, incoming, 1023, 0);
+            
+            if (n < 0) {
+                perror("recv error (client processing)");
+                break;
+            }
+            
+            incoming[n] = '\0';
+            
+            if (n > 0) {
+                // Handle message sent by client
+                write_to_buffer(user->user_id, incoming);
+                printf("Received message: %s\n", incoming);
+            }
         }
         
         // Check for messages for client
-        sendmessage = read_buffer_block(user->user_id);
-        
-        printf("hop");
+        sendmessage = read_buffer(user->user_id);
         
         if (sendmessage != NULL) {
             printf("Will send to client: %s\n", sendmessage);
