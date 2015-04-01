@@ -15,12 +15,12 @@
 //type ip address(or not), port number.
 int main(int argc, const char * argv[]) {
     int listenfd;
-    int connfd;
+    int connfd,n;
     socklen_t clilen;
     struct sockaddr *cliaddr=NULL;
     
-    char *mesbuff;
-    mesbuff=malloc(MAXMSG*sizeof(char)+1);
+    char mesbuff[MAXMSG];
+    //mesbuff=malloc(MAXMSG*sizeof(char)+1);
     Msgheader *mesheader;
 	mesheader=malloc(sizeof(Msgheader)); //this sizeof has sizes of nick pointers.
 	//open listenfd for clients
@@ -43,15 +43,20 @@ int main(int argc, const char * argv[]) {
         perror("accept error\n");
         return -1;
     }
-    client_nick(connfd);
+    memset(mesheader, 0, sizeof(Msgheader));
+	client_nick(connfd);
         
-    
-	for (; ; ) {
-		printf("calling server read\n");
-		if(server_read(connfd,mesbuff,mesheader)<0){
+    n=0;
+    for (; ; ) {
+		if(n=server_read(connfd,mesbuff,mesheader)<0){
 			perror("server_read pox!\n");
 			return -1;
 		}
+		//if (n>0){
+		printf("lastmsg:%s, from:%s to: %s\n", mesbuff,mesheader->sender_id, mesheader->recipient_id);
+		pass_message(connfd, mesbuff, mesheader);
+		memset(mesbuff, 0, MAXMSG);
+		//}
 	}
 	printf("message buffer %s\n",mesbuff);
 
