@@ -6,8 +6,8 @@ Server:
 - Server threads: maintains sockets for server based communications
 
 Client:
-- UI thread: draws UI, waits for strings to draw
-- Connection thread: reads from socket and passes strings to draw to UI thread, writes to socket if UI thread sends it data
+- UI thread: read strings from connection thread and prints it to UI thread, read strings from users and write to connection thread. 
+- Connection thread: read strings from socket and pass strings to UI thread, write strings to socket from UI thread
 
 #2. Requirements
 
