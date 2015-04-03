@@ -164,14 +164,19 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
 //Handling client's channel message
 void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join channel message
     
+    char message[MAXMSG+HDRSIZE];
+    
     cc_user * user_list;
     cc_user * chanuser;
+    
+    //merge the header and the message body
+    message=serialize_everything(mesbuff,mesheader);
     
     user_list=get_all_users();
     chanuser=user_list;
     
     while (chanuser!=NULL) {
-        write_to_buffer(chanuser->user_id,mesbuff);
+        write_to_buffer(chanuser->user_id,message);
         chanuser=chanuser->next_user;
         
     }

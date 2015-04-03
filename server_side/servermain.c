@@ -110,6 +110,7 @@ void process_connection(int sockfd)
     }*/
     
     if((client_nick(sockfd,nickname))<0)
+        close(sockfd);
         return;
     
    // n = write(sockfd, response, sizeof(response));

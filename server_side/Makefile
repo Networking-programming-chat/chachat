@@ -25,6 +25,6 @@ cleanobjects:
 	rm -f *.o
 
 clean:
-	rm -f ${PROGS} *~ *.a
+	rm -f ${PROGS} *~ *.a *.db
 
 .PHONY: dbtest threadtest all clean
