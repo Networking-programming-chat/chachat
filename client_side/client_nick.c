@@ -31,6 +31,7 @@ int client_nick(int sockfd, char *nickname){
         printf("read client name error\n");
         return -1;
     }
+	//existCnt++;
     // Empty the buffer used in storing the nickname.
     bzero(nick,sizeof(nick));
     
@@ -42,9 +43,7 @@ int client_nick(int sockfd, char *nickname){
         return -1;
     }
     
-    if (n1>0) {
-        printf("server response\n");
-    }
+    
     
     while(nickExist=='2'){
         printf ("Nickname already in use, enter a new nickname: ");
@@ -61,11 +60,15 @@ int client_nick(int sockfd, char *nickname){
         
         existCnt++;
         //break the loop after user sends an existing 3tims to the server.          
-        if(existCnt==2 && existCnt=='2'){
-            printf("you ran out of options?\n Try reconnect again :)\n");
+        if(existCnt==2){
+            close();
             break;
-        }	  
-    }
+        }	 		
+    
+	}   
+	   if(nickExist=='1'){
+		   printf("Name successfully added\n");
+	   }
     
     
     
