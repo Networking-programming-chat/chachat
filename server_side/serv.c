@@ -87,7 +87,7 @@ void print_address(const struct addrinfo *res)
 int client_nick(int socket,char *nick){
     
     char nickname[MAX_NICKLEN];
-    uint16_t response;
+    char response;
     int i=0,flag;
     cc_user *user;
     ssize_t n1;
@@ -106,7 +106,7 @@ int client_nick(int socket,char *nick){
         
         if (user == NULL) {
             printf("Nickname already in use.\n");
-            response=htons(2);
+            response='2';
             
             if ((n1=write(socket,&response,sizeof(response)))<0) {
                 perror("write nickname response to client fail\n");
@@ -114,20 +114,19 @@ int client_nick(int socket,char *nick){
             }
             
             flag=0;
-            i++;
         }
         
-    }while (flag==0&&i<3);
+    }while (flag==0&&(++i)<3);
     
     if (i==3) {
         return -1;
     }
-    if (flag!=0) {
+    if (flag==1) {
         
         // Register message buffer
         new_buffer(user->user_id);
         
-        response=htons(1);
+        response='1';
         if ((n1=write(socket,&response,sizeof(response)))<0) {
             perror("write nickname response to client fail\n");
             return -1;
