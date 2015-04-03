@@ -8,8 +8,9 @@
 #include <strings.h> //bzero
 #include <netdb.h> // addrinfo
 #include <unistd.h> //close
-#include <unistd.h>  
+#include <stdlib.h>  
 #include <fcntl.h> 
+#include <string.h>
 
 #define MAX 50
 
@@ -29,10 +30,10 @@ int client_nick(int sockfd, char *nickname);
 int client_connect(const char *servName, const char *servPort);
 
 //Handling client's normal message
-void chatMessageHandle(int connfd, char *send, char *recv, char *getCmd, Msgheader chatheader);
+int chatMessageHandle(int connfd, char *send, char *recv, char *getCmd, Msgheader chatheader);
 
 //Handling client's channel join command message
-void chanMessageHandle(int connfd, char *send, char *recv, char *getCmd, Msgheader chatheader);
+int chanMessageHandle(int connfd, char *send, char *recv, char *getCmd, Msgheader chatheader);
 
 //Handling client's quite command message
 void quitMessageHandle(int connfd,char *mesbuff, Msgheader chatheader);
