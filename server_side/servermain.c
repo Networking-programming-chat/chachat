@@ -68,7 +68,7 @@ void process_connection(int sockfd)
     fd_set rset;
 
     
-    for (;;) {
+   /* for (;;) {
         n = read(sockfd, nickname, MAX_NICKLEN - 1);
         if (n < 0) {
             perror("read error (reading nickname)");
@@ -102,7 +102,10 @@ void process_connection(int sockfd)
         
         // Done here
         break;
-    }
+    }*/
+    
+    if((client_nick(sockfd,nickname))<0)
+        return;
     
     n = write(sockfd, response, sizeof(response));
     
@@ -110,8 +113,10 @@ void process_connection(int sockfd)
         perror("write error (nickname final response)");
     }
     
+    /*
     // Register message buffer
     new_buffer(user->user_id);
+     */
     
     printf("start processing\n");
     
@@ -220,12 +225,16 @@ int main(int argc, const char * argv[]) {
     
     char *mesbuff;
     const int on = 1;
-    struct addrinfo hints, *res, *ressave;
     
     // Check arguments
-    if (argc != 3) {
-        printf("Usage: %s [address] [port]\n", argv[0]);
-        return 0;
+    if (argc==2)
+        listenfd=serv_listen(NULL, argv[1]);
+    else if (argc==3)
+        listenfd=serv_listen(argv[1], argv[2]);
+    else {
+        fprintf(stderr, "usage: %s <host> <port#>\n ", argv[0]);
+        return -1;
+        
     }
     
     // Setup database and msg buffers
@@ -234,45 +243,6 @@ int main(int argc, const char * argv[]) {
     
     mesbuff = malloc(MAXMSG*sizeof(char)+1);
     
-    memset(&hints, '\0', sizeof(struct addrinfo));
-    hints.ai_flags = AI_PASSIVE;
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    
-    if ( (n = getaddrinfo(argv[1], argv[2], &hints, &res)) != 0) {
-        fprintf(stderr, "tcp_listen error for %s, %s: %s", argv[1],
-                argv[2], gai_strerror(n));
-        return -1;
-    }
-    ressave = res;
-    
-    do {
-        listenfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-        if (listenfd < 0)
-            continue;               /* error, try next one */
-        
-        setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
-        if (bind(listenfd, res->ai_addr, res->ai_addrlen) == 0)
-            break;                  /* success */
-        
-        close(listenfd);        /* bind error, close and try next one */
-    } while ( (res = res->ai_next) != NULL);
-    
-    if (res == NULL) {        /* errno from final socket() or bind() */
-        fprintf(stderr, "tcp_listen error for %s, %s", argv[1], argv[2]);
-        return -1;
-    }
-    
-    
-    if (listen(listenfd, LISTENQ) < 0) {
-        perror("listen");
-        return -1;
-    }
-    
-    //printf("The ip address we are using is: ");
-    //print_address(res);
-    
-    freeaddrinfo(ressave);
     for (n = 0;n<THREAD_COUNT;n++){
         thread_make(n, listenfd);
     }

@@ -6,8 +6,8 @@ Client connect to server, one thread:
 
 3. client->server, client sends its nickname to the server not more than 20 characters long.
 
-4. server check the database whether the nick is in use. Yes, server sends the client a msg to choose another nick instead,
-and after 3 trials, return to connection window. No, server allocates a unique ID to the clients and add client information to the database on server side.
+4. server check the database whether the nick is in use. Yes, server sends the client 2 to choose another nick instead. No, server allocates a unique ID to the clients and add client information to the database on server side. And sends the client 1 to indicate success
+If the client 
 
 //Not in this phase 4. server->server, synchronize the database between servers.
 
@@ -32,11 +32,3 @@ And the servers synchronize the database between server.
 
 client sends /quit
 The server close the connection and delete the user’s information in database. And send synchronise information to other servers.
-  
-Client sends P2P message: through the server it connects with. 
-The server parses the message and forward the message based on its "routing table" to the destination server. 
-And each server has a unique identifier. The destination server checks if the destination client connects to it and whether it is in the same channel. 
-If yes, sends the message to the destination client. 
-
-client sends "broadcast" message to all people in the channel: the server check the client's channel, and finds all other clients who in the same channel. 
-Forwards the message to their servers.
