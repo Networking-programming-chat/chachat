@@ -61,7 +61,7 @@ int client_nick(int sockfd, char *nickname){
         
         existCnt++;
         //break the loop after user sends an existing 3tims to the server.          
-        if(existCnt==2){
+        if(existCnt==2 && existCnt=='2'){
             printf("you ran out of options?\n Try reconnect again :)\n");
             break;
         }	  
