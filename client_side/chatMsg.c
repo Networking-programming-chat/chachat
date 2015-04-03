@@ -1,15 +1,15 @@
 #include "client.h"
-
+#include <stdlib.h>
 
 //Handling client's private chat command and message
-void chatMessageHandle(int connfd, char *send, char *recv, char *getCmd, Msgheader chatheader){
+int chatMessageHandle(int connfd, char *send, char *recv, char *getCmd, Msgheader chatheader){
 
 int n;
     //sends the chat channel command message to the server.
 	if(pass_message(connfd, getCmd, &chatheader)<0){
 		printf("there was problem connecting to a chat client\n");
 	}
-		printf("%s: ",chatheader.sender_id);
+		printf("%s:",chatheader.sender_id);
 		memset(send, 0, sizeof(send));
 		
 		//a loop to continuously send message to the other client through the server.
@@ -38,5 +38,6 @@ int n;
 				return -1;
 			}
 		}
+ return 0;
 }
 
