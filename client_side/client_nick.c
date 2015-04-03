@@ -31,6 +31,39 @@ int len, nickCnt=3;
 		printf("read client name error\n");
 	return -1;
 	}
+	// Empty the buffer used in storing the nickname.
+	bzero(nick,sizeof(nick));
+	
+	uint16_t nickExist, existCnt=0;
+	//stores the return value received after sending the nickname to the server.
+	if ((n1=read(sockfd, &nickExist, strlen(nickExist)))<0) {
+		printf("read client name error\n");
+	return -1;
+	}
+	
+	nickExist = ntohs(nickExist);
+	while(nickExist== 2){
+	  printf ("Nickname already in use, enter a new nickname: ");
+	  fgets(nick,sizeof(nick),stdin);
+	  if ((n1=write(sockfd, nick, strlen(nick)))<0) {
+			printf("send client name error\n");
+			return -1;
+	  }
+	  
+	  if ((n1=read(sockfd, &nickExist, strlen(nickExist)))<0) {
+		printf("read client name error\n");
+		return -1;
+	  }
+	  existCnt++;
+	  //break the loop after user sends an existing 3tims to the server.          
+	  if(existCnt==3){
+		  printf("you ran out of options?\n Try reconnect again :)\n");
+		  break;
+	  }	  
+	}
+	
+	
+	
 	sprintf(nickname, "%s", nick);
 	
 return len;
