@@ -94,6 +94,7 @@ int client_nick(int socket,char *nick){
     
     do {
         flag=1;
+        memset(nickname, 0, sizeof(nickname));
         if ((n1=read(socket,nickname,sizeof(nickname)-1))<0) {
             perror("read client name error\n");
             return -1;
