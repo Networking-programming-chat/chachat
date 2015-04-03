@@ -127,10 +127,11 @@ int client_nick(int socket,char *nick){
         new_buffer(user->user_id);
         
         response=htons(1);
-        if ((n1=write(socket,response,sizeof(response)))<0) {
-            printf("write nickname response to client fail\n");
+        if ((n1=write(socket,&response,sizeof(response)))<0) {
+            perror("write nickname response to client fail\n");
             return -1;
         }
+        printf("write to client response success\n");
         
     }
     return 0;
