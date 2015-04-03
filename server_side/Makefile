@@ -1,4 +1,4 @@
-PROGS=sqlite3 ccserv dbtest threadtest
+PROGS=sqlite3 ccserv dbtest threadtest servertest
 CC=gcc
 CFLAGS=-Wall -pedantic -g -std=c99 -D_POSIX_C_SOURCE=200112L
 SQLFLAGS=-Wall -pedantic
