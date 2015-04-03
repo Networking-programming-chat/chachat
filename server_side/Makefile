@@ -3,7 +3,7 @@ CC=gcc
 CFLAGS=-Wall -pedantic -g -std=c99 -D_POSIX_C_SOURCE=200112L
 SQLFLAGS=-Wall -pedantic
 
-all: sqlite ccserv cleanobjects
+all: sqlite ccserv servtest cleanobjects 
 
 sqlite:
 	$(CC) $(SQLFLAGS) -c sqlite3.c

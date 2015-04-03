@@ -57,7 +57,12 @@ void process_connection(int sockfd)
 {
     // Wait for client nick
     
-    char nickname[MAX_NICKLEN], response[50], incoming[1024];
+    char nickname[MAX_NICKLEN], incoming[1024];
+    
+    char *mesbuff;
+    mesbuff=(char *)malloc(MAXMSG*sizeof(char)+1);
+    Msgheader *mesheader;
+    mesheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
     
     int i = 0;
     ssize_t n;
@@ -107,7 +112,7 @@ void process_connection(int sockfd)
     if((client_nick(sockfd,nickname))<0)
         return;
     
-    n = write(sockfd, response, sizeof(response));
+   // n = write(sockfd, response, sizeof(response));
     
     if (n < 0) {
         perror("write error (nickname final response)");
@@ -138,19 +143,34 @@ void process_connection(int sockfd)
         if (FD_ISSET(sockfd, &rset)) {
             
             // Read message
-            n = recv(sockfd, incoming, 1023, 0);
+           // n = recv(sockfd, incoming, 1023, 0);
+            n = read_message(sockfd, mesbuff, mesheader);
             
             if (n < 0) {
                 perror("recv error (client processing)");
                 break;
             }
             
-            incoming[n] = '\0';
-            
             if (n > 0) {
+                /*
                 // Handle message sent by client
                 write_to_buffer(user->user_id, incoming);
                 printf("Received message: %s\n", incoming);
+                 */
+                
+                if (mesheader->firstbyte=='1') {//client sends private chat message
+                    chatMessageHandle(sockfd, mesbuff, mesheader);
+                    
+                    
+                }else if (mesheader->firstbyte=='2') {//client sends channel chat message
+                    chanMessageHandle(sockfd,mesbuff,mesheader);
+                    
+                    
+                } else if (mesheader->firstbyte=='3') {//client sends quit command
+                    quitMessageHandle(sockfd,mesbuff,mesheader);
+                    
+                    
+                }
             }
         }
         
@@ -223,7 +243,7 @@ void thread_make(long i, int fd){
 int main(int argc, const char * argv[]) {
     int listenfd, n;
     
-    char *mesbuff;
+    //char *mesbuff;
     const int on = 1;
     
     // Check arguments
@@ -241,7 +261,7 @@ int main(int argc, const char * argv[]) {
     init_db();
     init_msg_buffers();
     
-    mesbuff = malloc(MAXMSG*sizeof(char)+1);
+    //mesbuff = malloc(MAXMSG*sizeof(char)+1);
     
     for (n = 0;n<THREAD_COUNT;n++){
         thread_make(n, listenfd);
