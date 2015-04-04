@@ -169,6 +169,9 @@ int handletask(int mainsockfd)
         
         n = strlen(nick);
         
+        // Set the newline to 0
+        nick[n-1] = '\0';
+        
         n = write(mainsockfd, nick, n);
         checkneg((int)n, "write error");
         

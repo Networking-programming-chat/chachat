@@ -25,6 +25,8 @@
 #define LISTENQ 5
 #define THREAD_COUNT 20
 
+#define MAX_MESSAGE_LEN 2048    // TODO: Make actual max len
+
 typedef struct thread_struct {
     pthread_t thread_id;
     int socketfd;
@@ -52,6 +54,241 @@ typedef struct thread_struct {
 
 thread_s pool[THREAD_COUNT];
 pthread_mutex_t accept_lock = PTHREAD_MUTEX_INITIALIZER;
+
+void print_debug_info()
+{
+    // Print some server info
+    
+    cc_user *user_list;
+    cc_channel *channel_list;
+    
+    user_list = get_all_users();
+    print_user_list(user_list);
+    
+    channel_list = get_all_channels();
+    print_channel_list(channel_list);
+    
+    free_cc_user(user_list);
+    free_cc_channel(channel_list);
+}
+
+char * get_first_argument(const char *message, int *end)
+{
+    char *argument;
+    int i;
+    
+    // Get argument length
+    for (i = 2; message[i] != ' ' && message[i] != '\0'; ++i);
+    
+    *end = i;
+    
+    i -= 1;
+    
+    argument = malloc(sizeof(char) * i);
+    strncpy(argument, message + 2, i);
+    argument[i-1] = '\0';
+    
+    return argument;
+}
+
+
+void send_to_user(cc_user* sender, const char *message)
+{
+    int end;
+    char *argument;
+    
+    //printf("%s\n", __func__);
+    
+    argument = get_first_argument(message, &end);
+    
+    // Get target user
+    cc_user *target = get_user_by_nick(argument);
+    
+    if (target == NULL) {
+        char response[128];
+        printf("WARN user %s does not exist\n", argument);
+        sprintf(response, "WARN user %s does not exist", argument);
+        write_to_buffer(sender->user_id, response);
+        return;
+    }
+    
+    printf("send message to user id: %d, nick: %s from: %s\n", target->user_id, target->nick, sender->nick);
+    
+    write_to_buffer(target->user_id, message + end);
+    part_channel(sender->nick, argument);
+    free(argument);
+}
+
+void create_channel(cc_user* sender, const char *message)
+{
+    int end, status;
+    char *argument;
+    
+    //printf("%s\n", __func__);
+    
+    argument = get_first_argument(message, &end);
+    status = add_channel(argument);
+    free(argument);
+    
+    if (status != SQLITE_OK) {
+        char response[128];
+        printf("WARN cannot create channel %s\n", argument);
+        sprintf(response, "WARN cannot create channel %s", argument);
+        write_to_buffer(sender->user_id, response);
+    }
+}
+
+void send_to_channel(cc_user* sender, const char *message)
+{
+    int end;
+    char *argument;
+    cc_user *user_list, *user;
+    
+    //printf("%s\n", __func__);
+    
+    argument = get_first_argument(message, &end);
+    
+    // Get users of channel
+    user_list = get_users_by_channel_name(argument);
+    
+    if (user_list == NULL) {
+        char response[128];
+        printf("WARN channel %s does not exist\n", argument);
+        sprintf(response, "WARN channel %s does not exist or nobody has joined", argument);
+        write_to_buffer(sender->user_id, response);
+        return;
+    }
+    
+    printf("send message to channel name: %s from: %s\n", argument, sender->nick);
+    
+    user = user_list;
+    
+    while (user != NULL) {
+        write_to_buffer(user->user_id, message + end);
+        user = user->next_user;
+    }
+    
+    free_cc_user(user_list);
+    free(argument);
+}
+
+void handle_channel_join(cc_user* sender, const char *message)
+{
+    int end, status;
+    char *argument;
+    
+    //printf("%s\n", __func__);
+    
+    argument = get_first_argument(message, &end);
+    status = join_channel(sender->nick, argument);
+    free(argument);
+
+    if (status != SQLITE_OK) {
+        char response[128];
+        printf("WARN cannot join channel %s, channel does not exist\n", argument);
+        sprintf(response, "WARN cannot join channel %s, channel does not exist", argument);
+        write_to_buffer(sender->user_id, response);
+    }
+}
+
+void handle_channel_part(cc_user* sender, const char *message)
+{
+    int end, status;
+    char *argument;
+    
+    //printf("%s\n", __func__);
+    
+    argument = get_first_argument(message, &end);
+    status = part_channel(sender->nick, argument);
+    free(argument);
+    
+    if (status != SQLITE_OK) {
+        char response[128];
+        printf("WARN cannot part channel %s\n", argument);
+        sprintf(response, "WARN cannot part channel %s", argument);
+        write_to_buffer(sender->user_id, response);
+    }
+
+}
+
+void handle_nick_change(cc_user* sender, const char *message)
+{
+    //printf("%s\n", __func__);
+    
+    // Not implemented
+    write_to_buffer(sender->user_id, "WARN Nick change not implemented.");
+}
+
+int handle_message(cc_user* sender, const char *message)
+{
+    char command;
+    
+    // Get command
+    if (strnlen(message, MAX_MESSAGE_LEN) > 2 && message[1] == ' ') {
+        command = message[0];
+    }
+    else {
+        // Not proper message
+        printf("Not a proper message: %s\n", message);
+        return 0;
+    }
+    
+    // Interpret command
+    switch (command) {
+        case 'q':
+        case 'Q':
+            // Quit command
+            return -1;
+
+        case 'm':
+        case 'M':
+            // Message for a user command
+            send_to_user(sender, message);
+            break;
+            
+        case 'u':
+        case 'U':
+            // Create a channel
+            create_channel(sender, message);
+            break;
+            
+        case 'c':
+        case 'C':
+            // Message for a channel command
+            send_to_channel(sender, message);
+            break;
+            
+        case 'j':
+        case 'J':
+            // Join a channel
+            handle_channel_join(sender, message);
+            break;
+            
+        case 'p':
+        case 'P':
+            // Part a channel
+            handle_channel_part(sender, message);
+            break;
+            
+        case 'n':
+        case 'N':
+            // Change nickname
+            handle_nick_change(sender, message);
+            break;
+            
+        case 'd':
+        case 'D':
+            // Server debug test
+            print_debug_info();
+            break;
+            
+        default:
+            printf("Unknown command %c\n", command);
+            break;
+    }
+    
+    return 0;
+}
 
 void process_connection(int sockfd)
 {
@@ -144,8 +381,15 @@ void process_connection(int sockfd)
             
             if (n > 0) {
                 // Handle message sent by client
-                write_to_buffer(user->user_id, incoming);
-                printf("Received message: %s\n", incoming);
+                
+                n = handle_message(user, incoming);
+                if (n < 0) {
+                    // Quit message sent
+                    break;
+                }
+                
+                //write_to_buffer(user->user_id, incoming);
+                //printf("Received message: %s\n", incoming);
             }
         }
         
