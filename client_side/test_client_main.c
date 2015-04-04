@@ -11,6 +11,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <arpa/inet.h>
+
+#include <termios.h>
 #include <unistd.h>
 
 #include <pthread.h>
@@ -30,10 +32,11 @@ typedef struct {
     int socketfd;
 } thread_s;
 
+struct termios orig_termios;
 
 /*void sig_handler(int signo) {
-    printf("-- signal --\n");
-}*/
+ printf("-- signal --\n");
+ }*/
 
 // Function to test a condition
 static void check (int test, const char * message, ...)
@@ -73,6 +76,51 @@ static void checkneg (int test, const char * message, ...)
     }
 }
 
+void cleanup_handler()
+{
+    tcsetattr(0, TCSANOW, &orig_termios);
+}
+
+void cbc_mode()
+{
+    struct termios cbc_termios;
+    
+    // Remember original terminal settings
+    tcgetattr(0, &orig_termios);
+    memcpy(&cbc_termios, &orig_termios, sizeof(cbc_termios));
+    
+    // register cleanup handler
+    atexit(cleanup_handler);
+    
+    // Set character by character terminal mode
+    //cfmakeraw(&cbc_termios);
+    cbc_termios.c_lflag &= ~(ECHO|ICANON);
+    cbc_termios.c_cc[VTIME] = 0;
+    cbc_termios.c_cc[VMIN] = 0;
+    tcsetattr(fileno(stdin), TCSANOW, &cbc_termios);
+
+}
+
+int check_keyboard()
+{
+    struct timeval tv = { 0L, 200L * 1000000L };
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(0, &fds);
+    return select(1, &fds, NULL, NULL, &tv);
+}
+
+int get_character()
+{
+    int r;
+    unsigned char c;
+    if ((r = (int)read(0, &c, sizeof(c))) < 0) {
+        return r;
+    } else {
+        return c;
+    }
+}
+
 void *reader_thread(void *arg) {
     thread_s *id;
     int sockfd;
@@ -84,7 +132,7 @@ void *reader_thread(void *arg) {
     
     printf("reader socket: %d\n", id->socketfd);
     
-    // Busy loop for a while here
+    // Read socket in a loop
     for (;;) {
         n = read(sockfd, buffer, 1023);
         if (n < 0) {
@@ -149,7 +197,7 @@ int handletask(int mainsockfd)
     thread->socketfd = mainsockfd;
     n = pthread_create(&(thread->thread_id), NULL, reader_thread, (void*)thread);
     check((int)n, "thread creation failed");
-
+    
     // Send messages
     for (;;) {
         fgets(nick, 127, stdin);
@@ -177,7 +225,7 @@ int handletask(int mainsockfd)
     
     n = pthread_join(thread->thread_id, &thread_result);
     check((int)n, "thread join failed");
-
+    
     
     return 0;
 }
