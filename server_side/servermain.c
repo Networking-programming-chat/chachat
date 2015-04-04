@@ -60,7 +60,7 @@ void process_connection(int sockfd)
 {
     // Wait for client nick
     
-    char nickname[MAX_NICKLEN], incoming[1024];
+    char nickname[MAX_NICKLEN];
     
     char *mesbuff;
     mesbuff=(char *)malloc(MAXMSG*sizeof(char)+1);
@@ -70,6 +70,7 @@ void process_connection(int sockfd)
     int i = 0;
     ssize_t n;
     struct timespec ts;
+    // TODO: Initialize new user somewhere!
     cc_user *user;
     
     // Select stuff
@@ -112,15 +113,16 @@ void process_connection(int sockfd)
         break;
     }*/
     
-    if((client_nick(sockfd,nickname))<0)
+    if((client_nick(sockfd,nickname))<0) {
         close(sockfd);
         return;
+    }
     
-   // n = write(sockfd, response, sizeof(response));
+    /*n = write(sockfd, response, sizeof(response));
     
     if (n < 0) {
         perror("write error (nickname final response)");
-    }
+    }*/
     
     /*
     // Register message buffer
@@ -255,7 +257,7 @@ int main(int argc, const char * argv[]) {
     int listenfd, n;
     
     //char *mesbuff;
-    const int on = 1;
+    //const int on = 1;
     
     // Check arguments
     if (argc==2)
