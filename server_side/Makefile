@@ -1,9 +1,9 @@
-PROGS=sqlite3 ccserv dbtest threadtest
+PROGS=sqlite3 ccserv dbtest threadtest servertest
 CC=gcc
 CFLAGS=-Wall -pedantic -g -std=c99 -D_POSIX_C_SOURCE=200112L
 SQLFLAGS=-Wall -pedantic
 
-all: sqlite ccserv cleanobjects
+all: sqlite ccserv servtest cleanobjects 
 
 sqlite:
 	$(CC) $(SQLFLAGS) -c sqlite3.c
@@ -25,6 +25,6 @@ cleanobjects:
 	rm -f *.o
 
 clean:
-	rm -f ${PROGS} *~ *.a
+	rm -f ${PROGS} *~ *.a *.db
 
 .PHONY: dbtest threadtest all clean

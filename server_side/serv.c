@@ -11,8 +11,7 @@
 
 
 
-/*This function is borrowed from example
- *Opening an listened fd.
+/*Opening an listened fd.
  */
 int serv_listen(const char *host, const char *serv){
     int listenfd, n;
@@ -62,7 +61,8 @@ int serv_listen(const char *host, const char *serv){
     return(listenfd);
 }
 
-void print_address(const struct addrinfo *res)//this function is based on lecture example
+/*print the address that server use*/
+void print_address(const struct addrinfo *res)
 {
     char outbuf[80];
     struct sockaddr_in *sin = (struct sockaddr_in *)res->ai_addr;
@@ -78,68 +78,71 @@ void print_address(const struct addrinfo *res)//this function is based on lectur
         return;
     }
     
-    //struct sockaddr_in *sin = (struct sockaddr_in *)res->ai_addr;
     const char *ret = inet_ntop(res->ai_family, address,
                                 outbuf, sizeof(outbuf));
     printf("%s\n",ret);
 }
 
-
+/*read the nickname from the client*/
 int client_nick(int socket,char *nick){
     
     char nickname[MAX_NICKLEN];
-    char response[50];
-    int v,i=0,flag=1;
+    char response;
+    int i=0,flag;
+    cc_user *user;
     ssize_t n1;
     
     do {
         flag=1;
-        if ((n1=read(socket,nickname,sizeof(nickname)))<0) {
+        memset(nickname, 0, sizeof(nickname));
+        if ((n1=read(socket,nickname,sizeof(nickname)-1))<0) {
             perror("read client name error\n");
             return -1;
         }
         
         printf("sender's_id is %s\n", nickname);
         
-        v = add_user(nickname);
+        user= add_user_server(nickname,0);
         
-        if (v != 0) {
+        if (user == NULL) {
             printf("Nickname already in use.\n");
-            sprintf(response,"Nickname already in use\n");
+            response='2';
             
-            if ((n1=write(socket,response,sizeof(response)))<0) {
+            if ((n1=write(socket,&response,sizeof(response)))<0) {
                 perror("write nickname response to client fail\n");
                 return -1;
             }
             
             flag=0;
-            i++;
         }
         
-    }while (flag==0&&i<3);
+    }while (flag==0&&(++i)<3);
     
     if (i==3) {
-        sprintf(response,"Nickname set times out\n");
-        return 0;
+        return -1;
     }
-    if (flag!=0) {
-        sprintf(response,"Nickname set success\n");
-        if ((n1=write(socket,response,sizeof(response)))<0) {
-            printf("write nickname response to client fail\n");
+    if (flag==1) {
+        
+        // Register message buffer
+        new_buffer(user->user_id);
+        
+        response='1';
+        if ((n1=write(socket,&response,sizeof(response)))<0) {
+            perror("write nickname response to client fail\n");
             return -1;
         }
+        printf("write to client response success\n");
         
     }
     return 0;
 }
 
-
+/*Handling client's private message*/
 void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     char response[50];
     ssize_t n1;
     
     printf("client send private chat message\n");
-    printf("dest: %s",mesheader->recipient_id);
     
     cc_user *destuser;
     
@@ -158,11 +161,25 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     
 }
 
+//Handling client's channel message
 void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join channel message
     
+    char message[MAXMSG+HDRSIZE];
+    
     cc_user * user_list;
+    cc_user * chanuser;
+    
+    //merge the header and the message body
+    message=serialize_everything(mesbuff,mesheader);
     
     user_list=get_all_users();
+    chanuser=user_list;
+    
+    while (chanuser!=NULL) {
+        write_to_buffer(chanuser->user_id,message);
+        chanuser=chanuser->next_user;
+        
+    }
     
     print_user_list(user_list);
     printf("\n");
@@ -170,8 +187,7 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
     
 }
 
-
-
+//Handling client's quite command message
 void quitMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){//quit command
     
     printf("quit command\n");

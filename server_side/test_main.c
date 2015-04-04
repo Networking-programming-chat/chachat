@@ -26,8 +26,12 @@ int main(int argc, const char * argv[]) {
     Msgheader *mesheader;
     mesheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
     
+    pthread_t *thread_id;
+    
     // Initialize database
     init_db();
+    // Initialize message buffers
+    init_msg_buffers();
     
     //open listenfd for clients
     if (argc==2)
@@ -77,14 +81,10 @@ int main(int argc, const char * argv[]) {
         
         
     } else{
-        printf("There must be error somewhere arrgh \n");
+        printf("The \n");
         
     }
     
-    
-    //  }
-    
-    remove_user(nickname);
     
     close_db();
     

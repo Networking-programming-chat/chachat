@@ -1,9 +1,9 @@
 #include "client.h"
-
+#include <stdlib.h>
 
 
 //Handling client's channel join command message
-void chanMessageHandle(int connfd, char *send, char *recv, char *getCmd, Msgheader chatheader){
+int chanMessageHandle(int connfd, char *send, char *recv, char *getCmd, Msgheader chatheader){
 
 int n;
     //sends the join channel command message to the server.
@@ -38,4 +38,5 @@ int n;
 				return -1;
 			}
 		}
+return 0;
 }
