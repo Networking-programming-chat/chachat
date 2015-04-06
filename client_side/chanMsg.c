@@ -21,7 +21,7 @@ pthread_t read;
 					
 			printf("%s:> ",chatheader.recipient_id);
 			//receives destination client's message	
-			pthread_create(&read,NULL,threadRead,NULL);
+			//pthread_create(&read,NULL,threadRead,NULL);
 	
 			recv[n] = 0;        // null terminate 
 			if (fputs(recv, stdout) == EOF) {

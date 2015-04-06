@@ -11,7 +11,6 @@ void printChatRule(){
 	printf("To join a channel type /join \n");
 	printf("To exit type /exit\n");
 	printf("To quit type /quit\n");
-	printf("You can only manage a max of 3 sessions of \neither chatting or channels at a time\n");
 	printf("To continue chat with a friend after joining a channel,\n simply issue the chat command again\n");
 	printf("To continue a channel discussion after starting a chat with a friend,\n simply issue the join command again\n");
 	printf("And you can only make mistakes 3 times\n");
