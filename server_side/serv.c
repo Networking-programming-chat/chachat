@@ -9,14 +9,12 @@
 #include <string.h>
 
 #include "serv.h"
-#include "db.h"
-#include "msg_buffers.h"
 
 
 
 /*Opening an listened fd.
  */
-int serv_listen(const char *host, const char *serv){
+int serv_listen(const char *host, const char *serv, socklen_t *addrlenp){
     int listenfd, n;
     const int on = 1;
     struct addrinfo hints, *res, *ressave;
@@ -56,6 +54,8 @@ int serv_listen(const char *host, const char *serv){
         perror("listen");
         return -1;
     }
+	if (addrlenp)
+		*addrlenp = res->ai_addrlen;    /* return size of protocol address */
     
     printf("The ip address we are using is: ");
     print_address(res);
@@ -88,7 +88,7 @@ void print_address(const struct addrinfo *res)
 }
 
 /*read the nickname from the client*/
-int client_nick(int socket,char *nick){
+int client_nick(int socket,char *nick,cc_user *user1){
     
     char nickname[MAX_NICKLEN];
     char response;
@@ -127,9 +127,6 @@ int client_nick(int socket,char *nick){
     }
     if (flag==1) {
         
-        // Register message buffer
-        new_buffer(user->user_id);
-        
         response='1';
         if ((n1=write(socket,&response,sizeof(response)))<0) {
             perror("write nickname response to client fail\n");
@@ -138,6 +135,9 @@ int client_nick(int socket,char *nick){
         printf("write to client response success\n");
         
     }
+    
+    memcpy(user1, user, sizeof(cc_user));
+    free(user);
     return 0;
 }
 
