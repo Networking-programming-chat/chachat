@@ -136,14 +136,13 @@ void process_connection(int sockfd)
     
     // Process client messages
     for (;;) {
-        int g;
         char * sendmessage;
         
         FD_ZERO(&rset);
         FD_SET(sockfd, &rset);
         
-        ts.tv_sec = 1;
-        ts.tv_nsec = 10 * 10000000;
+        ts.tv_sec = 0;
+        ts.tv_nsec = 20 * 100000000;
         
         i = pselect(sockfd + 1, &rset, NULL, NULL, &ts, 0);
         if (i < 0) {
