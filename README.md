@@ -32,7 +32,7 @@ Client:
 - normal messages pass as is, through servers
 
 
-![Whiteboardlayout](https://github.com/Networking-programming-chat/chachat/modelpic.jpg)
+![](https://github.com/Networking-programming-chat/chachat/blob/master/modelpic.jpg)
 
 1. send header
 
