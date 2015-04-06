@@ -2,6 +2,7 @@
 #include <sys/socket.h> //socket.
 #include <strings.h>
 #include <stdlib.h> // malloc
+#include <string.h>  // memset (do not use bzero!)
 #include <netdb.h> // addrinfo
 #include <unistd.h> //close
 #include <arpa/inet.h> //inet_ntop
@@ -19,8 +20,9 @@ int serv_listen(const char *host, const char *serv){
     int listenfd, n;
     const int on = 1;
     struct addrinfo hints, *res, *ressave;
-    
     memset(&hints,0, sizeof(struct addrinfo));
+    memset(&hints, 0, sizeof(struct addrinfo));
+
     hints.ai_flags = AI_PASSIVE;
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
@@ -175,6 +177,8 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
     
     //merge the header and the message body
     message1=serialize_everything(mesbuff,mesheader);
+
+  //  strncpy(message, serialize_everything(mesbuff,mesheader), MAXMSG+HDRSIZE);
     
     user_list=get_all_users();
     chanuser=user_list;

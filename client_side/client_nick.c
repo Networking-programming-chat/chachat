@@ -61,7 +61,7 @@ int client_nick(int sockfd, char *nickname){
         existCnt++;
         //break the loop after user sends an existing 3tims to the server.          
         if(existCnt==2){
-            close();
+            //close();
             break;
         }	 		
     
