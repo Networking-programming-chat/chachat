@@ -57,7 +57,8 @@ void process_connection(int sockfd)
 {
     // Wait for client nick
     
-    char nickname[MAX_NICKLEN], incoming[1024];
+    char nickname[MAX_NICKLEN];
+    //char incoming[1024];
     
     char *mesbuff;
     mesbuff=(char *)malloc(MAXMSG*sizeof(char)+1);
@@ -145,7 +146,7 @@ void process_connection(int sockfd)
             
             // Read message
            // n = recv(sockfd, incoming, 1023, 0);
-            n = read_message(sockfd, mesbuff, mesheader);
+            n = server_read(sockfd, mesbuff, mesheader);
             
             if (n < 0) {
                 perror("recv error (client processing)");
@@ -167,7 +168,10 @@ void process_connection(int sockfd)
                     chanMessageHandle(sockfd,mesbuff,mesheader);
                     
                     
-                } else if (mesheader->firstbyte=='3') {//client sends quit command
+                }else if(mesheader->firstbyte=='3'){//client sends exit channel message
+                    exitChanMessageHandle(sockfd,mesbuff,mesheader);
+                    
+                }else if (mesheader->firstbyte=='4') {//client sends quit command
                     quitMessageHandle(sockfd,mesbuff,mesheader);
                     
                     
@@ -245,7 +249,7 @@ int main(int argc, const char * argv[]) {
     int listenfd, n;
     
     //char *mesbuff;
-    const int on = 1;
+    //const int on = 1;
     
     // Check arguments
     if (argc==2)

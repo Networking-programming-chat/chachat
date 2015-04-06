@@ -29,7 +29,11 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader);
 //Handling client's channel message
 void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
 
+//Handling client's exit channel message
+void exitChanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
+
 //Handling client's quite command message
 void quitMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
+
 
 #endif

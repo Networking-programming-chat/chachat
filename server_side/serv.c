@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <sys/socket.h> //socket.
-#include <strings.h>  //bzero
+#include <strings.h>
+#include <stdlib.h> // malloc
 #include <netdb.h> // addrinfo
 #include <unistd.h> //close
 #include <arpa/inet.h> //inet_ntop
+#include <string.h>
 
 #include "serv.h"
 #include "db.h"
@@ -18,7 +20,7 @@ int serv_listen(const char *host, const char *serv){
     const int on = 1;
     struct addrinfo hints, *res, *ressave;
     
-    bzero(&hints, sizeof(struct addrinfo));
+    memset(&hints,0, sizeof(struct addrinfo));
     hints.ai_flags = AI_PASSIVE;
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
@@ -164,27 +166,36 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
 //Handling client's channel message
 void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join channel message
     
-    char message[MAXMSG+HDRSIZE];
+    char *message1;
     
     cc_user * user_list;
     cc_user * chanuser;
     
+    message1=(char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
+    
     //merge the header and the message body
-    message=serialize_everything(mesbuff,mesheader);
+    message1=serialize_everything(mesbuff,mesheader);
     
     user_list=get_all_users();
     chanuser=user_list;
     
+    if (chanuser==NULL) {
+        printf("There is no such channel\n");
+    }
+    
     while (chanuser!=NULL) {
-        write_to_buffer(chanuser->user_id,message);
+        write_to_buffer(chanuser->user_id,message1);
         chanuser=chanuser->next_user;
         
     }
     
-    print_user_list(user_list);
-    printf("\n");
     
     
+}
+
+//Handling client's exit channel message
+void exitChanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){
+    part_channel(mesheader->sender_id,mesheader->recipient_id);
 }
 
 //Handling client's quite command message
