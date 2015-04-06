@@ -11,7 +11,7 @@ int client(const char *servName, const char *servPort) {
 int i, connect, nickSend, inpCnt=2;
 int cht=0, chn=0, mstk=0, chnCnt=0, chtCnt=0;
 char cmd[6], name[MAX_NICKLEN], c1;
-char *search, *namSaved[MAXCHAN], sentMsg[MAXMSG], recvMsg[MAXMSG], getnick[MAX_NICKLEN];
+char *search, *namSaved[MAXCHAN], sentMsg[MAXMSG], recvMsg[MAXMSG], *nick_name;
 Msgheader clientsChat;
 
 	if ((connect=client_connect(servName, servPort))<0) {
@@ -25,9 +25,8 @@ Msgheader clientsChat;
 	
 	printChatRule();
     //check if sending nick to the server was successful
-    nickSend = client_nick(connect, getnick);
-    //printf("your nick is %s ",getnick);
-	if(strlen(nickSend) < 0){
+    nick_name = client_nick(connect);
+	if(strlen(nick_name) < 0){
 		printf("There is problem writing nickname to the server\n");
 	}else{
 	    
@@ -35,7 +34,7 @@ Msgheader clientsChat;
 	    clientsChat.firstbyte='0';
 		clientsChat.msglen=0;
 		clientsChat.recipient_id="0";
-		clientsChat.sender_id=getnick;
+		clientsChat.sender_id=nick_name;
 		memset(sentMsg, 0, sizeof(sentMsg));
 		
 		
@@ -44,16 +43,16 @@ Msgheader clientsChat;
 		
 		
 		CHATTING:
-		printf("%s:> ",getnick);
+		printf("%s:> ",nick_name);
 		fgets(sentMsg,sizeof(sentMsg),stdin);
 		
 		search = strchr(sentMsg,'/');
 		
-	    if(search == NULL && cht==1 && clientsChat.firstbyte=='1' && chtCnt!=0){
+	    if(search == NULL && cht==1 && clientsChat.firstbyte=='1' && chtCnt!= 0){
 			clientsChat.msglen=strlen(sentMsg);
 			clientsChat.recipient_id=name;
-			clientsChat.sender_id=getnick;
-			//printf("User: %s , opt=%c\n", sentMsg, clientsChat.firstbyte);
+			clientsChat.sender_id=nick_name;
+			printf("User: %s , opt=%c\n", sentMsg, clientsChat.firstbyte);
 			printf("chat=%d and chan=%d\n", chtCnt, chnCnt);
 		
 			chatMessageHandle(connect, sentMsg, recvMsg, clientsChat); //chat messenger function
@@ -63,8 +62,8 @@ Msgheader clientsChat;
 		}else if(search == NULL && chn==1 && clientsChat.firstbyte=='2' && chnCnt!=0){
 			clientsChat.msglen=strlen(sentMsg);
 			clientsChat.recipient_id=name;
-			clientsChat.sender_id=getnick;
-			//printf("User: %s , opt=%c\n", sentMsg, clientsChat.firstbyte);
+			clientsChat.sender_id=nick_name;
+			printf("User: %s , opt=%d\n", sentMsg, clientsChat.firstbyte);
 			printf("chat=%d and chan=%d\n", chtCnt, chnCnt);
 			
 			chanMessageHandle(connect, sentMsg, recvMsg, clientsChat); //chat messenger function
@@ -149,7 +148,7 @@ Msgheader clientsChat;
 								clientsChat.firstbyte='1';
 								clientsChat.msglen=0;
 								clientsChat.recipient_id=name;
-								clientsChat.sender_id=getnick;
+								clientsChat.sender_id=nick_name;
 								cht=1;
 								inpCnt = 0;
 								chtCnt +=1;
@@ -198,7 +197,7 @@ Msgheader clientsChat;
 								clientsChat.firstbyte='2';
 								clientsChat.msglen=0;
 								clientsChat.recipient_id=name;
-								clientsChat.sender_id=getnick;
+								clientsChat.sender_id=nick_name;
 								chn=1;
 								inpCnt = 0;
 								chnCnt +=1;

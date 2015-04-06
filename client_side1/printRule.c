@@ -14,7 +14,6 @@ void printChatRule(){
 	printf("You can only manage a max of 3 sessions of \neither chatting or channels at a time\n");
 	printf("To continue chat with a friend after joining a channel,\n simply issue the chat command again\n");
 	printf("To continue a channel discussion after starting a chat with a friend,\n simply issue the join command again\n");
-	printf("And you can only make mistakes 3 times\n");
 	printf("If you have any problem, simply type: help\n");
 	printf("Do have fun! using our service. :)\n");
 	printf("###########################################################\n");
@@ -28,9 +27,9 @@ void *threadRead()
 	char *recv;
 	Msgheader chatheader;
 	
-	while(1)
+	while(i < 10 )
 	{
-		usleep(READ_TIMEOUT_USEC);
+		usleep(1);
 		printf(" says: %d\n",i);
 /*		if ((n = read_message(connfd, recv, &chatheader))<0) {*/
 /*				perror("read_message:");*/
