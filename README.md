@@ -30,7 +30,10 @@ Client:
 - Bulk of transmitted data - 
 - Also handles binary for db transmissions
 - normal messages pass as is, through servers
- 
+
+
+![Whiteboardlayout](https://github.com/Networking-programming-chat/chachat/modelpic.jpg)
+
 1. send header
 
 | `MsgHeader 43 bytes`        | 
