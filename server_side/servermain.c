@@ -54,6 +54,7 @@ typedef struct thread_struct {
 
 thread_s pool[THREAD_COUNT];
 pthread_mutex_t accept_lock = PTHREAD_MUTEX_INITIALIZER;
+socklen_t               addrlen;
 
 
 void process_connection(int sockfd)
@@ -224,14 +225,16 @@ void *conn_thread (void *arg)
     int listenfd, connfd;
     thread_s self;
     //struct sockaddr_in cliaddr;
-    struct sockaddr cliaddr;
+    struct sockaddr *cliaddr;
     socklen_t clisize;
     
+    cliaddr = malloc(addrlen);
     self = *(thread_s*)arg;
     listenfd = self.socketfd;
     
     for (;;) {
-        pthread_mutex_lock(&accept_lock);
+        clisize = addrlen;
+	pthread_mutex_lock(&accept_lock);
         connfd = accept(listenfd, (struct sockaddr *) &cliaddr, &clisize);
         pthread_mutex_unlock(&accept_lock);
         
@@ -266,9 +269,9 @@ int main(int argc, const char * argv[]) {
     
     // Check arguments
     if (argc==2)
-        listenfd=serv_listen(NULL, argv[1]);
+        listenfd=serv_listen(NULL, argv[1], &addrlen);
     else if (argc==3)
-        listenfd=serv_listen(argv[1], argv[2]);
+        listenfd=serv_listen(argv[1], argv[2], &addrlen);
     else {
         fprintf(stderr, "usage: %s <host> <port#>\n ", argv[0]);
         return -1;

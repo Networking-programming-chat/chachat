@@ -14,7 +14,7 @@
 
 /*Opening an listened fd.
  */
-int serv_listen(const char *host, const char *serv){
+int serv_listen(const char *host, const char *serv, socklen_t *addrlenp){
     int listenfd, n;
     const int on = 1;
     struct addrinfo hints, *res, *ressave;
@@ -54,6 +54,8 @@ int serv_listen(const char *host, const char *serv){
         perror("listen");
         return -1;
     }
+	if (addrlenp)
+		*addrlenp = res->ai_addrlen;    /* return size of protocol address */
     
     printf("The ip address we are using is: ");
     print_address(res);

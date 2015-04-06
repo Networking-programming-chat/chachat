@@ -13,7 +13,7 @@
 * char *serv is the port of server in string format
 * return: the listening sock desciptor
 */
-int serv_listen(const char *host, const char *serv);
+int serv_listen(const char *host, const char *serv, socklen_t *addrlenp);
 
 /*print the connected address*/
 void print_address(const struct addrinfo * res);
