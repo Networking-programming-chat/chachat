@@ -31,28 +31,41 @@ Client:
  
 1. send header
 
+| `MsgHeader 43 bytes`        | 
+| ------------- |
+| `message max. 2^16-1 bytes` | 
+
+
 Application needs 2 allocated headers to store outgoing and incoming data per connection.
 
-	typedef struct{
-	char firstbyte;				//0x00 == normal message, 0x01 == channel, 0x02 == command!, 0x03 == something else
-	uint16_t msglen;			//truncate messages to fit 16bit ~65k chars.
-	char* recipient_id;			//nick specified, "nulled 20byte array"
-	char* sender_id;			//nick specified, "nulled 20byte array"
-	}Msgheader;
+```
+typedef struct{
+char firstbyte;				//0x00 == normal message, 0x01 == channel, 0x02 == command!, 0x03 == something else
+uint16_t msglen;			//truncate messages to fit 16bit ~65k chars.
+char* recipient_id;			//nick specified, "nulled 20byte array"
+char* sender_id;			//nick specified, "nulled 20byte array"
+}Msgheader;
+```
 
 2. send data separately
 
 3. functions for applications:
 
-//read a message from socket, store message to arg2, header to agr3
+read a message from socket, store message to arg2, header to agr3
+```
 int read_message(int fd, char * msg_dest, Msgheader *hdr_dest);
-
-//writes a normal message to socket. Returns read() return after last read after succesful forwarding. Header MUST contain the length of attached message for proper function with binary.
+```
+writes a normal message to socket. Returns read() return after last read after succesful forwarding. Header MUST contain the length of attached message for proper function with binary.
+```
 int pass_message(int fd, const char * message, Msgheader* hdr);
+```
 
-//frees the allocated memory of a header
+frees the allocated memory of a header
+```
 void free_hdr(Msgheader *hdr);
+```
 
+Servers may implement timeouts to check the status of other threads, and resume reading after.
 	  
 #6. Quality assurance
 ##Protocol
