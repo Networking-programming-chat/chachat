@@ -136,7 +136,8 @@ int client_nick(int socket,char *nick,cc_user *user1){
         
     }
     
-    user1=user;
+    memcpy(user1, user, sizeof(cc_user));
+    free(user);
     return 0;
 }
 

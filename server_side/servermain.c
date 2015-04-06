@@ -26,7 +26,6 @@
 #define THREAD_COUNT 20
 
 #define MAX_MESSAGE_LEN 2048    // TODO: Make actual max len
-
 typedef struct thread_struct {
     pthread_t thread_id;
     int socketfd;
@@ -120,6 +119,7 @@ void process_connection(int sockfd)
         close(sockfd);
         return;
     }
+        
     
     /*n = write(sockfd, response, sizeof(response));
     
@@ -136,13 +136,14 @@ void process_connection(int sockfd)
     
     // Process client messages
     for (;;) {
+        int g;
         char * sendmessage;
         
         FD_ZERO(&rset);
         FD_SET(sockfd, &rset);
         
-        ts.tv_sec = 0;
-        ts.tv_nsec = 200 * 1000000;
+        ts.tv_sec = 1;
+        ts.tv_nsec = 10 * 10000000;
         
         i = pselect(sockfd + 1, &rset, NULL, NULL, &ts, 0);
         if (i < 0) {
@@ -153,7 +154,7 @@ void process_connection(int sockfd)
             
             // Read message
            // n = recv(sockfd, incoming, 1023, 0);
-            n = server_read(sockfd, mesbuff, mesheader);
+            n = read_message(sockfd, mesbuff, mesheader);
             
             if (n < 0) {
                 perror("recv error (client processing)");
@@ -214,7 +215,9 @@ void process_connection(int sockfd)
     }
     
     remove_user(user->nick);
-
+	free(mesbuff);
+	free_hdr(mesheader);
+	free(mesheader);
     free_cc_user(user);
     
     return;
