@@ -113,8 +113,7 @@ int read_message(int fd, char * msg_dest, Msgheader *hdr_dest){
 		fprintf(stderr, "allocate memory for header/messagebuffer!\n");
 		return -1;
 	}
-	//reading header;
-	printf("reading header\n");
+	//printf("reading header\n");
 	while ( (n = read(fd, &hdrbuf[totbytes], HDRSIZE)) > 0) {
 		totbytes += n;
 		if (totbytes >= HDRSIZE) break;
@@ -126,11 +125,10 @@ int read_message(int fd, char * msg_dest, Msgheader *hdr_dest){
 	
 	//memset(hdrbuf, 0, HDRSIZE);
 	buffer_to_hdr(hdrbuf, hdr_dest);
-	//read msg; msglen bytes;
 	if(hdr_dest->msglen == 0) return n;
 	totbytes=0;n=0;
 	if(hdr_dest->msglen>MAXMSG) hdr_dest->msglen=MAXMSG;
-	printf("reading message\n");
+	//printf("reading message\n");
 	while ( (n = read(fd, &buffer[totbytes], hdr_dest->msglen)) > 0) {
 		totbytes += n;
 		if (totbytes >= hdr_dest->msglen) break;

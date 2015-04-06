@@ -215,9 +215,9 @@ void process_connection(int sockfd)
     
     remove_user(user->nick);
 	free(mesbuff);
-	free_hdr(mesheader);
 	free(mesheader);
     free_cc_user(user);
+    //free(user);
     
     return;
 }
@@ -243,7 +243,6 @@ void *conn_thread (void *arg)
         if (connfd < 0) {
             perror("accept error");
         }
-        
         process_connection(connfd);
         
         close(connfd);
