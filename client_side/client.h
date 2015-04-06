@@ -12,7 +12,7 @@
 #include <fcntl.h> 
 #include <string.h>
 #include <pthread.h>
-
+#define READ_TIMEOUT 100000000
 #define MAX 50
 
 //client function:
@@ -28,7 +28,7 @@ void *threadRead();
 int startChat(char *getCmd, char *getName);
 
 //handles the client's nickname
-char *client_nick(int sockfd);
+int client_nick(int sockfd, const char *getName);
 
 //handles client's connection to the server
 int client_connect(const char *servName, const char *servPort);
