@@ -142,7 +142,7 @@ void process_connection(int sockfd)
         FD_SET(sockfd, &rset);
         
         ts.tv_sec = 0;
-        ts.tv_nsec = 20 * 100000000;
+        ts.tv_nsec = 200 * 1000000;
         
         i = pselect(sockfd + 1, &rset, NULL, NULL, &ts, 0);
         if (i < 0) {
