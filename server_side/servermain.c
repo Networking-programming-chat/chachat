@@ -73,6 +73,7 @@ void process_connection(int sockfd)
     struct timespec ts;
     // TODO: Initialize new user somewhere!
     cc_user *user;
+    user=(cc_user *)malloc(sizeof(cc_user));
     
     // Select stuff
     fd_set rset;
@@ -114,7 +115,7 @@ void process_connection(int sockfd)
         break;
     }*/
     
-    if((client_nick(sockfd,nickname))<0) {
+    if((client_nick(sockfd,nickname,user))<0) {
         close(sockfd);
         return;
     }
@@ -125,10 +126,10 @@ void process_connection(int sockfd)
         perror("write error (nickname final response)");
     }*/
     
-    /*
+
     // Register message buffer
     new_buffer(user->user_id);
-     */
+
     
     printf("start processing\n");
     

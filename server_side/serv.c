@@ -9,8 +9,6 @@
 #include <string.h>
 
 #include "serv.h"
-#include "db.h"
-#include "msg_buffers.h"
 
 
 
@@ -88,7 +86,7 @@ void print_address(const struct addrinfo *res)
 }
 
 /*read the nickname from the client*/
-int client_nick(int socket,char *nick){
+int client_nick(int socket,char *nick,cc_user *user1){
     
     char nickname[MAX_NICKLEN];
     char response;
@@ -127,9 +125,6 @@ int client_nick(int socket,char *nick){
     }
     if (flag==1) {
         
-        // Register message buffer
-        new_buffer(user->user_id);
-        
         response='1';
         if ((n1=write(socket,&response,sizeof(response)))<0) {
             perror("write nickname response to client fail\n");
@@ -138,6 +133,8 @@ int client_nick(int socket,char *nick){
         printf("write to client response success\n");
         
     }
+    
+    user1=user;
     return 0;
 }
 

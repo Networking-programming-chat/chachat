@@ -3,6 +3,8 @@
 
 #include <sys/socket.h>
 #include "netproto.h"
+#include "db.h"
+#include "msg_buffers.h"
 
 #define LISTENQ 5
 
@@ -21,7 +23,7 @@ void print_address(const struct addrinfo * res);
 int read_nickname(int socket,char *);
 
 /*add client nickname in the database*/
-int client_nick(int socket,char *nickname);
+int client_nick(int socket,char *nickname,cc_user *user1);
 
 //Handling client's private message
 void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader);
