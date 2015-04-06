@@ -21,6 +21,8 @@ Client:
 - testserver/client builds with "make" in project root. this was used for protocol testing.
 - make testserver/make testclient to build separately
 
+- server_side/make builds the server. Under server_side folder, type "make". The executable file name is "servtest", Type "./servtest <port>".
+
 
 #4. Communication protocol
 
@@ -98,24 +100,16 @@ and after 3 trials, return to connection window. No, server allocates a unique I
  
 Client sends message:
 
-client chat privately: send /chat @nick (existing nickname) 
+client type "/chat @nick(existing nickname) message" to send private message.
 The server checks if nick exists already in all servers' dbase , if yes, forward message to nick (a client on the other end),
 if no, send a msg e.g. @nick is not a user yet, return to current window.
 
-client join a channel: sends /join #channel message to the server. 
-The server update the database and update its channel information. 
-And the servers synchronize the database between server.
+client type "/join <#channel> message" to send channel message. 
+
+client types "/exit <#channel>" to part the channel.
 
 client sends /quit
 The server close the connection and delete the user’s information in database. And send synchronise information to other servers.
-  
-Client sends P2P message: through the server it connects with. 
-The server parses the message and forward the message based on its "routing table" to the destination server. 
-And each server has a unique identifier. The destination server checks if the destination client connects to it and whether it is in the same channel. 
-If yes, sends the message to the destination client. 
-
-client sends "broadcast" message to all people in the channel: the server check the client's channel, and finds all other clients who in the same channel. 
-Forwards the message to their servers.
 
 ##Database
 
