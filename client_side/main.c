@@ -6,7 +6,7 @@
 int main(void) {
 char *hostAddr="localhost";
 char *hostPort="3333";
-int con;
+//int con;
 
 client(hostAddr, hostPort);
 

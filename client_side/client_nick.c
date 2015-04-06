@@ -1,11 +1,11 @@
 #include "client.h"
 
-int client_nick(int sockfd, char *nickname){
+char *client_nick(int sockfd){
     
     char nick[MAX];
     ssize_t n1;
     int len, nickCnt=3;
-    printf("To start chatting type your nickname below.\n");
+    //printf("To start chatting type your nickname below.\n");
     //set content to zero
     //memset(nickname, 0, sizeof(nickname));
     //give user 3 chances to give correct nickname otherwise this connect them
@@ -16,7 +16,7 @@ int client_nick(int sockfd, char *nickname){
         //printf ("The nickname entered is %d characters long.\n",len);
         
         if(len < MAX_NICKLEN+1){
-            printf("what a nice nick %s  ",nick);
+           // printf("what a nice nick %s  ",nick);
             nickCnt = 0;
         }else{
             printf ("Your nickname is too long\n");
@@ -72,7 +72,7 @@ int client_nick(int sockfd, char *nickname){
     
     
     
-    sprintf(nickname, "%s", nick);
+    //sprintf(nickname, "%s", nick);
     
-    return len;
+    return nick;
 }
