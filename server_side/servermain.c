@@ -206,6 +206,8 @@ void process_connection(int sockfd)
             
             split_datas(sendmessage,sendbody,sendheader);
             
+            print_hdr(sendheader);
+            
             printf("Will send to client: %s\n", sendbody);
             
             // Send to client

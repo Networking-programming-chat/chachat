@@ -150,7 +150,7 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
    
     message = (char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
     //merge the header and the message body
-    message = serialize_everything(mesbuff,mesheader);
+    serialize_everything(message, mesbuff,mesheader);
     
     respheader = (Msgheader *)malloc(sizeof(Msgheader)+1);
     
@@ -195,9 +195,10 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
     cc_user * chanuser;
     
     message1=(char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
+    memset(message1, 0, MAXMSG+HDRSIZE+1);
     
     //merge the header and the message body
-    message1=serialize_everything(mesbuff,mesheader);
+    serialize_everything(message1, mesbuff,mesheader);
 
   //  strncpy(message, serialize_everything(mesbuff,mesheader), MAXMSG+HDRSIZE);
     char * channel ;
