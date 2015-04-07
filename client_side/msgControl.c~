@@ -3,8 +3,8 @@
 #include <string.h>
 
 
-#define MAXCHAT 5
-#define MAXCHAN 5
+#define MAXCHAT 3
+#define MAXCHAN 3
 #define MAX 50
 
 

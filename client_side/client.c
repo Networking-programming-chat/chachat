@@ -45,7 +45,7 @@ Msgheader clientsChat;
 		
 		
 		CHATTING:
-		printf("me:< ");
+		printf("%sme:< ",COLOR_CYN);
 		fgets(sentMsg,sizeof(sentMsg),stdin);
 		
 		search = strchr(sentMsg,'/');

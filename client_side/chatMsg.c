@@ -19,7 +19,7 @@ pthread_t read;
 				return -1;
 			}
 					
-			printf("%s:> ",chatheader.recipient_id);
+			printf("%s%s:> ",COLOR_GRN,chatheader.recipient_id);
 			//receives destination client's message	
 			//pthread_create(&read,NULL,threadRead,NULL);
 	
