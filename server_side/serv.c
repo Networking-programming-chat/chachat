@@ -175,6 +175,9 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
 		return;
     }
     
+    else if(destuser!=NULL){
+        print_user(destuser);
+    }
     write_to_buffer(destuser->user_id, mesbuff);
     
     
