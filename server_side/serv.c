@@ -144,12 +144,15 @@ int client_nick(int socket,char *nick,cc_user *user1){
 /*Handling client's private message*/
 void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     char response[50];
+    Msgheader *respheader;
     char *message;
     ssize_t n1;
    
-    message=(char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
+    message = (char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
     //merge the header and the message body
-    message=serialize_everything(mesbuff,mesheader);
+    message = serialize_everything(mesbuff,mesheader);
+    
+    respheader = (Msgheader *)malloc(sizeof(Msgheader)+1);
     
     printf("client send private chat message\n");
     
@@ -158,9 +161,17 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     
     if (destuser==NULL) {
         sprintf(response,"%s doesn't exit!\n",mesheader->recipient_id);
-        if((n1=write(connfd, response, strlen(response)+1))<0){
+        
+        respheader->firstbyte = '1';
+        respheader->msglen = strlen(response);
+        respheader->recipient_id = mesheader->sender_id;
+        respheader->sender_id = mesheader->recipient_id;
+        
+        if((n1=pass_message(connfd,response,respheader))<0){
             perror("write response to client fail\n");
         }
+        
+        
 		return;
     }
     
