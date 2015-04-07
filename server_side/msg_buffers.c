@@ -230,7 +230,7 @@ char* read_buffer_block(int client_id)
     return read_buffer_internal(client_id, 1);
 }
 
-int write_to_buffer(int client_id, const char* message)
+int write_to_buffer(int client_id, const char* message, int n)
 {
     unsigned int slot;
     size_t msg_len;
@@ -264,14 +264,14 @@ int write_to_buffer(int client_id, const char* message)
     
     // Write a line to the next available slot
     slot = (item->first_line + item->line_count) % BUFFER_LINE_AMOUNT;
-    msg_len = strlen(message);
+    msg_len = n;
     item->buffer[slot] = malloc(sizeof(char) * msg_len + 1);
     if (item->buffer[slot] == NULL) {
         m_unlock(&(item->buffer_access));
         return 3;
     }
     
-    strncpy(item->buffer[slot], message, msg_len);
+    memcpy(item->buffer[slot], message, msg_len);
     item->buffer[slot][msg_len] = '\0';
     
     // Add line to bookkeeping

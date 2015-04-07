@@ -102,11 +102,7 @@ int split_datas(char* chunk, char* message, Msgheader* hdr){
 	if (!chunk || !hdr || !message)
 		return -1;
 	buffer_to_hdr(chunk, hdr);
-	message=malloc(hdr->msglen*sizeof(char));
-	if(!message){
-		perror("malloc");
-		return -1;
-	}
+	print_hdr(hdr);
 	memcpy(message, chunk+43, hdr->msglen);
 	return 0;
 }

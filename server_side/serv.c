@@ -14,6 +14,8 @@
 
 /*Opening an listened fd.
  */
+ 
+ 
 int serv_listen(const char *host, const char *serv, socklen_t *addrlenp){
     int listenfd, n;
     const int on = 1;
@@ -147,12 +149,21 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     Msgheader *respheader;
     char *message;
     ssize_t n1;
+    int blocklen;
    
-    message = (char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
+    blocklen = mesheader->msglen + 43;
+    message = malloc(blocklen*sizeof(char));
     //merge the header and the message body
+    print_hdr(mesheader);
     serialize_everything(message, mesbuff,mesheader);
+    hexprinter(message, 45);
+    buffer_to_hdr(message, mesheader);
+    print_hdr(mesheader);
     
-    respheader = (Msgheader *)malloc(sizeof(Msgheader)+1);
+    
+    //print_hdr(mesheader);
+    
+    respheader = malloc(sizeof(Msgheader));
     
     printf("client send private chat message\n");
     
@@ -166,6 +177,7 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
         respheader->msglen = strlen(response);
         respheader->recipient_id = mesheader->sender_id;
         respheader->sender_id = mesheader->recipient_id;
+    	print_hdr(respheader);
         
         if((n1=pass_message(connfd,response,respheader))<0){
             perror("write response to client fail\n");
@@ -178,7 +190,7 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     else if(destuser!=NULL){
         print_user(destuser);
     }
-    write_to_buffer(destuser->user_id, message);
+    write_to_buffer(destuser->user_id, message, blocklen);
     
     free(message);
     free(respheader);
@@ -210,6 +222,7 @@ void client_to_channel(Msgheader * mesheader){
 void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join channel message
     
     char *message1;
+    int blocklen;
     
     client_to_channel(mesheader);
     
@@ -234,7 +247,7 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
     }
     
     while (chanuser!=NULL) {
-        write_to_buffer(chanuser->user_id,message1);
+        write_to_buffer(chanuser->user_id,message1, blocklen);
         chanuser=chanuser->next_user;
         
     }

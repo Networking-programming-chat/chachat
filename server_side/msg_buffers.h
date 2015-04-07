@@ -29,7 +29,7 @@ char* read_buffer_block(int client_id);
 // When sending messages to other clients, threads use this method to write to client buffer
 // That client's connection thread will read the message from that buffer
 // Message will be copied to a new malloced memory address in the heap
-int write_to_buffer(int client_id, const char* message);
+int write_to_buffer(int client_id, const char* message, int n);
 
 // List the buffers to stdout for debug purposes
 void list_buffers();
