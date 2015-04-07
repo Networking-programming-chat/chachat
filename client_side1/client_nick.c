@@ -1,6 +1,6 @@
 #include "client.h"
 
-int client_nick(int sockfd, const char *nickname){
+char *client_nick(int sockfd){
     
     char nick[MAX];
     ssize_t n1;
@@ -31,8 +31,6 @@ int client_nick(int sockfd, const char *nickname){
         printf("read client name error\n");
         return -1;
     }
-    sprintf(nickname,"%s",nick);
-    //printf ("Your nickname is %s\n",nickname);
 	//existCnt++;
     // Empty the buffer used in storing the nickname.
     bzero(nick,sizeof(nick));
@@ -74,7 +72,7 @@ int client_nick(int sockfd, const char *nickname){
     
     
     
+    //sprintf(nickname, "%s", nick);
     
-    
-    return len;
+    return nick;
 }

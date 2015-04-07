@@ -25,6 +25,7 @@
 #define LISTENQ 5
 #define THREAD_COUNT 20
 
+#define MAX_MESSAGE_LEN 2048    // TODO: Make actual max len
 typedef struct thread_struct {
     pthread_t thread_id;
     int socketfd;
@@ -52,12 +53,15 @@ typedef struct thread_struct {
 
 thread_s pool[THREAD_COUNT];
 pthread_mutex_t accept_lock = PTHREAD_MUTEX_INITIALIZER;
+socklen_t               addrlen;
+
 
 void process_connection(int sockfd)
 {
     // Wait for client nick
     
-    char nickname[MAX_NICKLEN], incoming[1024];
+    char nickname[MAX_NICKLEN];
+    //char incoming[1024];
     
     char *mesbuff;
     mesbuff=(char *)malloc(MAXMSG*sizeof(char)+1);
@@ -67,7 +71,9 @@ void process_connection(int sockfd)
     int i = 0;
     ssize_t n;
     struct timespec ts;
+    // TODO: Initialize new user somewhere!
     cc_user *user;
+    user=(cc_user *)malloc(sizeof(cc_user));
     
     // Select stuff
     fd_set rset;
@@ -109,19 +115,22 @@ void process_connection(int sockfd)
         break;
     }*/
     
-    if((client_nick(sockfd,nickname))<0)
+    if((client_nick(sockfd,nickname,user))<0) {
+        close(sockfd);
         return;
+    }
+        
     
-   // n = write(sockfd, response, sizeof(response));
+    /*n = write(sockfd, response, sizeof(response));
     
     if (n < 0) {
         perror("write error (nickname final response)");
-    }
+    }*/
     
-    /*
+
     // Register message buffer
     new_buffer(user->user_id);
-     */
+
     
     printf("start processing\n");
     
@@ -154,8 +163,15 @@ void process_connection(int sockfd)
             if (n > 0) {
                 /*
                 // Handle message sent by client
-                write_to_buffer(user->user_id, incoming);
-                printf("Received message: %s\n", incoming);
+                
+                n = handle_message(user, incoming);
+                if (n < 0) {
+                    // Quit message sent
+                    break;
+                }
+                
+                //write_to_buffer(user->user_id, incoming);
+                //printf("Received message: %s\n", incoming);
                  */
                 
                 if (mesheader->firstbyte=='1') {//client sends private chat message
@@ -166,7 +182,10 @@ void process_connection(int sockfd)
                     chanMessageHandle(sockfd,mesbuff,mesheader);
                     
                     
-                } else if (mesheader->firstbyte=='3') {//client sends quit command
+                }else if(mesheader->firstbyte=='3'){//client sends exit channel message
+                    exitChanMessageHandle(sockfd,mesbuff,mesheader);
+                    
+                }else if (mesheader->firstbyte=='4') {//client sends quit command
                     quitMessageHandle(sockfd,mesbuff,mesheader);
                     
                     
@@ -195,8 +214,10 @@ void process_connection(int sockfd)
     }
     
     remove_user(user->nick);
-
+	free(mesbuff);
+	free(mesheader);
     free_cc_user(user);
+    //free(user);
     
     return;
 }
@@ -206,21 +227,22 @@ void *conn_thread (void *arg)
     int listenfd, connfd;
     thread_s self;
     //struct sockaddr_in cliaddr;
-    struct sockaddr cliaddr;
+    struct sockaddr *cliaddr;
     socklen_t clisize;
     
+    cliaddr = malloc(addrlen);
     self = *(thread_s*)arg;
     listenfd = self.socketfd;
     
     for (;;) {
-        pthread_mutex_lock(&accept_lock);
+        clisize = addrlen;
+	pthread_mutex_lock(&accept_lock);
         connfd = accept(listenfd, (struct sockaddr *) &cliaddr, &clisize);
         pthread_mutex_unlock(&accept_lock);
         
         if (connfd < 0) {
             perror("accept error");
         }
-        
         process_connection(connfd);
         
         close(connfd);
@@ -244,13 +266,13 @@ int main(int argc, const char * argv[]) {
     int listenfd, n;
     
     //char *mesbuff;
-    const int on = 1;
+    //const int on = 1;
     
     // Check arguments
     if (argc==2)
-        listenfd=serv_listen(NULL, argv[1]);
+        listenfd=serv_listen(NULL, argv[1], &addrlen);
     else if (argc==3)
-        listenfd=serv_listen(argv[1], argv[2]);
+        listenfd=serv_listen(argv[1], argv[2], &addrlen);
     else {
         fprintf(stderr, "usage: %s <host> <port#>\n ", argv[0]);
         return -1;

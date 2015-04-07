@@ -1,24 +1,26 @@
 #include <stdio.h>
 #include <sys/socket.h> //socket.
-#include <strings.h>  //bzero
+#include <strings.h>
+#include <stdlib.h> // malloc
+#include <string.h>  // memset (do not use bzero!)
 #include <netdb.h> // addrinfo
 #include <unistd.h> //close
 #include <arpa/inet.h> //inet_ntop
+#include <string.h>
 
 #include "serv.h"
-#include "db.h"
-#include "msg_buffers.h"
 
 
 
 /*Opening an listened fd.
  */
-int serv_listen(const char *host, const char *serv){
+int serv_listen(const char *host, const char *serv, socklen_t *addrlenp){
     int listenfd, n;
     const int on = 1;
     struct addrinfo hints, *res, *ressave;
-    
-    bzero(&hints, sizeof(struct addrinfo));
+    memset(&hints,0, sizeof(struct addrinfo));
+    memset(&hints, 0, sizeof(struct addrinfo));
+
     hints.ai_flags = AI_PASSIVE;
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
@@ -52,6 +54,8 @@ int serv_listen(const char *host, const char *serv){
         perror("listen");
         return -1;
     }
+	if (addrlenp)
+		*addrlenp = res->ai_addrlen;    /* return size of protocol address */
     
     printf("The ip address we are using is: ");
     print_address(res);
@@ -84,7 +88,7 @@ void print_address(const struct addrinfo *res)
 }
 
 /*read the nickname from the client*/
-int client_nick(int socket,char *nick){
+int client_nick(int socket,char *nick,cc_user *user1){
     
     char nickname[MAX_NICKLEN];
     char response;
@@ -123,9 +127,6 @@ int client_nick(int socket,char *nick){
     }
     if (flag==1) {
         
-        // Register message buffer
-        new_buffer(user->user_id);
-        
         response='1';
         if ((n1=write(socket,&response,sizeof(response)))<0) {
             perror("write nickname response to client fail\n");
@@ -134,6 +135,9 @@ int client_nick(int socket,char *nick){
         printf("write to client response success\n");
         
     }
+    
+    memcpy(user1, user, sizeof(cc_user));
+    free(user);
     return 0;
 }
 
@@ -145,15 +149,14 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     printf("client send private chat message\n");
     
     cc_user *destuser;
-    
     destuser=get_user_by_nick(mesheader->recipient_id);
     
     if (destuser==NULL) {
         sprintf(response,"%s doesn't exit!\n",mesheader->recipient_id);
         if((n1=write(connfd, response, strlen(response)+1))<0){
             perror("write response to client fail\n");
-            return;
         }
+		return;
     }
     
     write_to_buffer(destuser->user_id, mesbuff);
@@ -164,22 +167,38 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
 //Handling client's channel message
 void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join channel message
     
+    char *message1;
+    
     cc_user * user_list;
     cc_user * chanuser;
+    
+    message1=(char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
+    
+    //merge the header and the message body
+    message1=serialize_everything(mesbuff,mesheader);
+
+  //  strncpy(message, serialize_everything(mesbuff,mesheader), MAXMSG+HDRSIZE);
     
     user_list=get_all_users();
     chanuser=user_list;
     
+    if (chanuser==NULL) {
+        printf("There is no such channel\n");
+    }
+    
     while (chanuser!=NULL) {
-        write_to_buffer(chanuser->user_id,mesbuff);
+        write_to_buffer(chanuser->user_id,message1);
         chanuser=chanuser->next_user;
         
     }
     
-    print_user_list(user_list);
-    printf("\n");
     
     
+}
+
+//Handling client's exit channel message
+void exitChanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){
+    part_channel(mesheader->sender_id,mesheader->recipient_id);
 }
 
 //Handling client's quite command message

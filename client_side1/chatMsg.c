@@ -4,8 +4,8 @@
 
 
 
-//Handling client's channel join command message
-int chanMessageHandle(int connfd, char *send, char *recv, Msgheader chatheader){
+//Handling client's private chat command and message
+int chatMessageHandle(int connfd, char *send, char *recv, Msgheader chatheader){
 
 int n=0;
 pthread_t read;
@@ -19,9 +19,9 @@ pthread_t read;
 				return -1;
 			}
 					
-			printf("%s%s:> ",COLOR_GRN,chatheader.recipient_id);
+			printf("%s:>",chatheader.recipient_id);
 			//receives destination client's message	
-			//pthread_create(&read,NULL,threadRead,NULL);
+			pthread_create(&read,NULL,threadRead,NULL);
 	
 			recv[n] = 0;        // null terminate 
 			if (fputs(recv, stdout) == EOF) {
@@ -31,6 +31,4 @@ pthread_t read;
 		//}
  return 0;
 }
-
-
 

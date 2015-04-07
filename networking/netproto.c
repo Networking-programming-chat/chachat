@@ -13,11 +13,12 @@
 //RETURN VALUE: ptr to Msgheader struct;
 void print_hdr(Msgheader* n){
 	if(n){
-	printf("----header-----\n");
+	printf("----BEGIN-header-----\n");
 	printf("firstbyte set to: 0x%02X\n", n->firstbyte);
 	printf("msglen: ""%"PRIu16"\n", n->msglen);
 	printf("sender: %s\n", n->sender_id);
-	printf("recipient: %s\n\n", n->recipient_id);
+	printf("recipient: %s\n", n->recipient_id);
+	printf("-----END--header-----\n");
 	}
 }
 
@@ -68,11 +69,21 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 	//printf("tmp: %hu\n", tmp);
 	memset(buffer, hdr->firstbyte, 1);
 	memcpy(&buffer[1], &tmp, 2);//1,2
+	char *lf;
 	
-	if(hdr->recipient_id)
+	if(hdr->recipient_id){
+		if ((lf=memchr(hdr->recipient_id, '\n', MAX_NICKLEN)) != NULL){
+			*lf='\0';
+		}
 		strncpy(&buffer[3], hdr->recipient_id, MAX_NICKLEN);//3-22
-	if(hdr->sender_id)
+	
+	}
+	if(hdr->sender_id){
+		if ((lf=memchr(hdr->sender_id, '\n', MAX_NICKLEN)) != NULL){
+			*lf='\0';
+		}
 		strncpy(&buffer[23], hdr->sender_id, MAX_NICKLEN);//23-42
+	}
 	return buffer;
 }
 
@@ -108,26 +119,26 @@ int read_message(int fd, char * msg_dest, Msgheader *hdr_dest){
 	int totbytes=0,n=0;
 	char hdrbuf[HDRSIZE],buffer[MAXMSG+1];
 	
-	
 	if(!hdr_dest || !msg_dest){
 		fprintf(stderr, "allocate memory for header/messagebuffer!\n");
 		return -1;
 	}
-	//reading header;
+	//printf("reading header\n");
 	while ( (n = read(fd, &hdrbuf[totbytes], HDRSIZE)) > 0) {
 		totbytes += n;
 		if (totbytes >= HDRSIZE) break;
 	}
-	if (n < 0) {
+	if (n < HDRSIZE) {
         perror("hdr_read error");
 		return -1;
     }
 	
 	//memset(hdrbuf, 0, HDRSIZE);
 	buffer_to_hdr(hdrbuf, hdr_dest);
-	//read msg; msglen bytes;
+	if(hdr_dest->msglen == 0) return n;
 	totbytes=0;n=0;
 	if(hdr_dest->msglen>MAXMSG) hdr_dest->msglen=MAXMSG;
+	//printf("reading message\n");
 	while ( (n = read(fd, &buffer[totbytes], hdr_dest->msglen)) > 0) {
 		totbytes += n;
 		if (totbytes >= hdr_dest->msglen) break;
@@ -167,7 +178,7 @@ int server_read(int fd, char * msg_dest, Msgheader *hdr_dest){
 		return 0;
 	}
 	else if(n == 0){
-		//printf("timeout: checking buffer for data from other thread\n"); /* a timeout occured */
+		printf("timeout: checking buffer for data from other thread\n"); /* a timeout occured */
 		return 0;
 	}
 	else{
