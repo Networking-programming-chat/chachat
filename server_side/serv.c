@@ -178,7 +178,7 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     else if(destuser!=NULL){
         print_user(destuser);
     }
-    write_to_buffer(destuser->user_id, mesbuff);
+    write_to_buffer(destuser->user_id, message);
     
     
 }
@@ -188,7 +188,10 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
     
     char *message1;
     
-    cc_user * user_list;
+   cc_user * user_list=get_all_users();
+   
+   print_user_list(user_list);
+   
     cc_user * chanuser;
     
     message1=(char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
@@ -197,9 +200,13 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
     message1=serialize_everything(mesbuff,mesheader);
 
   //  strncpy(message, serialize_everything(mesbuff,mesheader), MAXMSG+HDRSIZE);
+    char * channel ;
     
-    user_list=get_all_users();
-    chanuser=user_list;
+    chanuser = get_users_by_channel_name(mesheader->recipient_id);
+    
+    printf("The users in channel %s",mesheader->recipient_id);
+    print_user_list(chanuser);
+    printf("\n");
     
     if (chanuser==NULL) {
         printf("There is no such channel\n");
