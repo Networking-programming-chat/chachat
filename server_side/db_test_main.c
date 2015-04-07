@@ -8,13 +8,15 @@
 
 
 int main(int argc, const char * argv[]) {
-    int s;
+    //int s;
     
     printf(COLOR_GRN "Database unit tests\n" COLOR_NRM);
     
     init_db();
     
-    add_user("Kuukkeli");
+    clear_db();
+    
+    /*add_user("Kuukkeli");
 
     cc_user *user = get_user_by_id(1);
     cc_user *user2 = get_user_by_nick("Kuukkeli");
@@ -35,15 +37,12 @@ int main(int argc, const char * argv[]) {
     free_cc_user(user2);
     free_cc_user(user3);
     
-    free_cc_channel(channels);
+    free_cc_channel(channels);*/
         
-    join_channel("devon", "nfl");
-    join_channel("devon", "chat");
-    part_channel("devon", "chat");
-    
-    join_channel("hadrn", "nfl");
-    join_channel("Troop", "nfl");
-    join_channel("Madden", "nfl");
+    // Add test channels
+    add_channel("nfl");
+    add_channel("test");
+    add_channel("chat");
     
     // Add test users
     add_user("devon");
@@ -53,10 +52,13 @@ int main(int argc, const char * argv[]) {
     add_user("Madden");
     add_user("har_har");
     
-    // Add test channels
-    add_channel("nfl");
-    add_channel("test");
-    add_channel("chat");
+    join_channel("devon", "nfl");
+    join_channel("devon", "chat");
+    //part_channel("devon", "chat");
+    
+    join_channel("hadrn", "nfl");
+    join_channel("Troop", "nfl");
+    join_channel("Madden", "nfl");
     
     //remove_user("devon");
     
@@ -65,8 +67,8 @@ int main(int argc, const char * argv[]) {
     set_channel_topic("nfl", "Discussion about nfl");
     change_nick("Troop", "Madden2");
 
-    cc_user * user_list = get_all_users(); // get_users_by_channel_name("nfl");
-    cc_channel * channel_list = get_all_channels(); // get_channels_of_user_nick("devon");
+    cc_user * user_list =  get_users_by_channel_name("nfl");
+    cc_channel * channel_list =  get_channels_of_user_nick("devon");
     
     print_user_list(user_list);
     printf("\n");
