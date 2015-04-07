@@ -61,8 +61,14 @@ void process_connection(int sockfd)
     // Wait for client nick
     
     char nickname[MAX_NICKLEN];
+
     //char incoming[1024];
     
+    char *sendbody;
+    sendbody=(char *)malloc(MAXMSG*sizeof(char)+1);
+    Msgheader *sendheader;
+    sendheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
+
     char *mesbuff;
     mesbuff=(char *)malloc(MAXMSG*sizeof(char)+1);
     Msgheader *mesheader;
