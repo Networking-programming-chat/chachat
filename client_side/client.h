@@ -12,6 +12,7 @@
 #include <fcntl.h> 
 #include <string.h>
 #include <pthread.h>
+#include <time.h>
 #define READ_TIMEOUT 100000000
 #define MAX 50
 #define COLOR_NRM   "\x1B[0m"
@@ -24,7 +25,14 @@
 #define COLOR_WHT   "\x1B[37m"
 #define COLOR_RESET "\033[0m"
 #define BRIGHT 1
+#define THREAD_CNT 2
 
+
+struct arg_struct {
+    int conn;
+    char *recvbuf;
+    Msgheader header;
+};
 
 
 //client function:
@@ -32,6 +40,8 @@ int client(const char *servName, const char *servPort);
 
 //prints chat rules and help
 void printChatRule();
+//prints the timestamp
+char* get_timestamp();
 
 //thread for reading incoming messages
 void *threadRead();

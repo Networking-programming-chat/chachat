@@ -45,7 +45,8 @@ Msgheader clientsChat;
 		
 		
 		CHATTING:
-		printf("%sme:< ",COLOR_CYN);
+		//get_timestamp();
+		printf("%s? %s>me:< ",get_timestamp(),COLOR_CYN);
 		fgets(sentMsg,sizeof(sentMsg),stdin);
 		
 		search = strchr(sentMsg,'/');
@@ -81,7 +82,7 @@ Msgheader clientsChat;
 					mstk+=1;
 				}else{
 					clientsChat.firstbyte=clientsChat.firstbyte;
-					if (clientsChat.firstbyte=='1' && chtCnt>1){
+					if (clientsChat.firstbyte=='1' && chtCnt>=1){
 						printf("You've stopped a private chat.\n");
 						chtCnt-=1;
 		
@@ -94,7 +95,7 @@ Msgheader clientsChat;
 						
 						//to continue group chat
 						goto CHATTING;
-					}else if (clientsChat.firstbyte=='2' && chnCnt>1){
+					}else if (clientsChat.firstbyte=='2' && chnCnt>=1){
 						printf("You've stopped a channel discussion.\n");
 						chnCnt-=1;
 						
@@ -108,7 +109,7 @@ Msgheader clientsChat;
 						//to continue private chat
 						goto CHATTING;
 					}else if ((clientsChat.firstbyte=='0' && chtCnt==0) || (clientsChat.firstbyte=='0' && chnCnt==0)){
-						printf("You leave without chatting. \n");
+						printf("You left without chatting. \n");
 						cht=0;
 						inpCnt = 0;
 						return -1;
