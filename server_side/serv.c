@@ -144,7 +144,12 @@ int client_nick(int socket,char *nick,cc_user *user1){
 /*Handling client's private message*/
 void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     char response[50];
+    char *message;
     ssize_t n1;
+   
+    message=(char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
+    //merge the header and the message body
+    message=serialize_everything(mesbuff,mesheader);
     
     printf("client send private chat message\n");
     

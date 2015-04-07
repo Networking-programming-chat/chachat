@@ -197,12 +197,14 @@ void process_connection(int sockfd)
         sendmessage = read_buffer(user->user_id);
         
         if (sendmessage != NULL) {
-            printf("Will send to client: %s\n", sendmessage);
             
-            n = strlen(sendmessage);
+            split_datas(sendmessage,sendbody,sendheader);
+            
+            printf("Will send to client: %s\n", sendbody);
             
             // Send to client
-            n = write(sockfd, sendmessage, n+1);
+            // n = write(sockfd, sendmessage, n+1);
+            pass_message(sockfd,sendbody,sendheader);
             
             free(sendmessage);
             
@@ -211,6 +213,7 @@ void process_connection(int sockfd)
                 break;
             }
         }
+
     }
     
     remove_user(user->nick);
