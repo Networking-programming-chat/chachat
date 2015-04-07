@@ -149,15 +149,14 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     printf("client send private chat message\n");
     
     cc_user *destuser;
-    
     destuser=get_user_by_nick(mesheader->recipient_id);
     
     if (destuser==NULL) {
         sprintf(response,"%s doesn't exit!\n",mesheader->recipient_id);
         if((n1=write(connfd, response, strlen(response)+1))<0){
             perror("write response to client fail\n");
-            return;
         }
+		return;
     }
     
     write_to_buffer(destuser->user_id, mesbuff);

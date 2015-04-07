@@ -13,11 +13,12 @@
 //RETURN VALUE: ptr to Msgheader struct;
 void print_hdr(Msgheader* n){
 	if(n){
-	printf("----header-----\n");
+	printf("----BEGIN-header-----\n");
 	printf("firstbyte set to: 0x%02X\n", n->firstbyte);
 	printf("msglen: ""%"PRIu16"\n", n->msglen);
 	printf("sender: %s\n", n->sender_id);
-	printf("recipient: %s\n\n", n->recipient_id);
+	printf("recipient: %s\n", n->recipient_id);
+	printf("-----END--header-----\n");
 	}
 }
 
