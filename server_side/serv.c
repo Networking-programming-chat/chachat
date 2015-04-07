@@ -180,6 +180,29 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     }
     write_to_buffer(destuser->user_id, message);
     
+    free(message);
+    free(respheader);
+}
+
+void client_to_channel(Msgheader * mesheader){
+
+    
+    if (get_channel_by_name(mesheader->recipient_id)==NULL) {
+        add_channel(mesheader->recipient_id);
+    }
+    
+    cc_user * chanuser=get_users_by_channel_name(mesheader->recipient_id);
+    
+    while (chanuser!=NULL) {
+        if (strcmp(chanuser->nick,mesheader->sender_id)==0) {
+            printf("The user already exits in %s\n",mesheader->recipient_id);
+            break;
+        }
+    }
+    if (chanuser==NULL) {
+         printf("The user doesn't exits in %s\n",mesheader->recipient_id);
+         join_channel(mesheader->sender_id,mesheader->recipient_id);
+    }
     
 }
 
@@ -188,10 +211,8 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
     
     char *message1;
     
-   cc_user * user_list=get_all_users();
-   
-   print_user_list(user_list);
-   
+    client_to_channel(mesheader);
+    
     cc_user * chanuser;
     
     message1=(char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
@@ -201,7 +222,6 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
     serialize_everything(message1, mesbuff,mesheader);
 
   //  strncpy(message, serialize_everything(mesbuff,mesheader), MAXMSG+HDRSIZE);
-    char * channel ;
     
     chanuser = get_users_by_channel_name(mesheader->recipient_id);
     
@@ -219,7 +239,7 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
         
     }
     
-    
+    free(message1);
     
 }
 

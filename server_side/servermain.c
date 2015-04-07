@@ -143,6 +143,10 @@ void process_connection(int sockfd)
     // Process client messages
     for (;;) {
         char * sendmessage;
+        char *sendbody;
+        sendbody=(char *)malloc(MAXMSG*sizeof(char)+1);
+        Msgheader *sendheader;
+        sendheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
         
         FD_ZERO(&rset);
         FD_SET(sockfd, &rset);
@@ -215,6 +219,8 @@ void process_connection(int sockfd)
             pass_message(sockfd,sendbody,sendheader);
             
             free(sendmessage);
+            free(sendbody);
+            free(sendheader);
             
             if (n < 0) {
                 perror("write error (message to client)\n");
