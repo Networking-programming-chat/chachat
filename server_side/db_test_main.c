@@ -8,15 +8,12 @@
 
 
 int main(int argc, const char * argv[]) {
-    //int s;
     
     printf(COLOR_GRN "Database unit tests\n" COLOR_NRM);
     
     init_db();
     
-    clear_db();
-    
-    /*add_user("Kuukkeli");
+    add_user("Kuukkeli");
 
     cc_user *user = get_user_by_id(1);
     cc_user *user2 = get_user_by_nick("Kuukkeli");
@@ -37,12 +34,24 @@ int main(int argc, const char * argv[]) {
     free_cc_user(user2);
     free_cc_user(user3);
     
-    free_cc_channel(channels);*/
-        
-    // Add test channels
+    free_cc_channel(channels);
+    
+    printf("\n");
+    printf("creating chanlist\n");
     add_channel("nfl");
-    add_channel("test");
-    add_channel("chat");
+    cc_channel * channel_list = get_all_channels(); // get_channels_of_user_nick("devon");
+    print_channel_list(channel_list);
+	printf("done--\n");
+    printf("\n");
+    
+        
+    join_channel("devon", "nfl");
+    join_channel("devon", "chat");
+    part_channel("devon", "chat");
+    
+    join_channel("hadrn", "nfl");
+    join_channel("Troop", "nfl");
+    join_channel("Madden", "nfl");
     
     // Add test users
     add_user("devon");
@@ -52,13 +61,9 @@ int main(int argc, const char * argv[]) {
     add_user("Madden");
     add_user("har_har");
     
-    join_channel("devon", "nfl");
-    join_channel("devon", "chat");
-    //part_channel("devon", "chat");
-    
-    join_channel("hadrn", "nfl");
-    join_channel("Troop", "nfl");
-    join_channel("Madden", "nfl");
+    // Add test channels
+    add_channel("test");
+    add_channel("chat");
     
     //remove_user("devon");
     
@@ -66,12 +71,17 @@ int main(int argc, const char * argv[]) {
     
     set_channel_topic("nfl", "Discussion about nfl");
     change_nick("Troop", "Madden2");
-
-    cc_user * user_list =  get_users_by_channel_name("nfl");
-    cc_channel * channel_list =  get_channels_of_user_nick("devon");
-    
-    print_user_list(user_list);
+	
+	printf("\n");
+    printf("users on nfl\n");
+    cc_user * user_list = get_users_by_channel_name("nfl"); // get_users_by_channel_name("nfl");
+	print_user_list(user_list);
+	printf("---------end\n");
     printf("\n");
+    
+  
+    channel_list = get_all_channels(); // get_channels_of_user_nick("devon");
+    
     print_channel_list(channel_list);
 
     free_cc_user(user_list);
