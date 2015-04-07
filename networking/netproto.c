@@ -68,11 +68,21 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 	//printf("tmp: %hu\n", tmp);
 	memset(buffer, hdr->firstbyte, 1);
 	memcpy(&buffer[1], &tmp, 2);//1,2
+	char *lf;
 	
-	if(hdr->recipient_id)
+	if(hdr->recipient_id){
+		if ((lf=memchr(hdr->recipient_id, '\n', MAX_NICKLEN)) != NULL){
+			*lf='\0';
+		}
 		strncpy(&buffer[3], hdr->recipient_id, MAX_NICKLEN);//3-22
-	if(hdr->sender_id)
+	
+	}
+	if(hdr->sender_id){
+		if ((lf=memchr(hdr->sender_id, '\n', MAX_NICKLEN)) != NULL){
+			*lf='\0';
+		}
 		strncpy(&buffer[23], hdr->sender_id, MAX_NICKLEN);//23-42
+	}
 	return buffer;
 }
 
@@ -107,7 +117,6 @@ int split_datas(char* chunk, char* message, Msgheader* hdr){
 int read_message(int fd, char * msg_dest, Msgheader *hdr_dest){
 	int totbytes=0,n=0;
 	char hdrbuf[HDRSIZE],buffer[MAXMSG+1];
-	
 	
 	if(!hdr_dest || !msg_dest){
 		fprintf(stderr, "allocate memory for header/messagebuffer!\n");
