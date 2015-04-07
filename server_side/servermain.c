@@ -56,13 +56,26 @@ pthread_mutex_t accept_lock = PTHREAD_MUTEX_INITIALIZER;
 socklen_t               addrlen;
 
 
+void hexprinter(char* str,int num){
+	for (int i = 0;i<num;i++){
+		printf("%02X", str[i]);
+	}
+	printf("\n");
+}
+
 void process_connection(int sockfd)
 {
     // Wait for client nick
     
     char nickname[MAX_NICKLEN];
+
     //char incoming[1024];
     
+    char *sendbody;
+    sendbody=(char *)malloc(MAXMSG*sizeof(char)+1);
+    Msgheader *sendheader;
+    sendheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
+
     char *mesbuff;
     mesbuff=(char *)malloc(MAXMSG*sizeof(char)+1);
     Msgheader *mesheader;
@@ -137,6 +150,10 @@ void process_connection(int sockfd)
     // Process client messages
     for (;;) {
         char * sendmessage;
+        char *sendbody;
+        sendbody=(char *)malloc(MAXMSG*sizeof(char)+1);
+        Msgheader *sendheader;
+        sendheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
         
         FD_ZERO(&rset);
         FD_SET(sockfd, &rset);
@@ -197,20 +214,28 @@ void process_connection(int sockfd)
         sendmessage = read_buffer(user->user_id);
         
         if (sendmessage != NULL) {
-            printf("Will send to client: %s\n", sendmessage);
             
-            n = strlen(sendmessage);
+            hexprinter(sendmessage, 45);
+    		split_datas(sendmessage,sendbody,sendheader);
+            
+            print_hdr(sendheader);
+            
+            printf("Will send to client: %s\n", sendbody);
             
             // Send to client
-            n = write(sockfd, sendmessage, n+1);
+            // n = write(sockfd, sendmessage, n+1);
+            pass_message(sockfd,sendbody,sendheader);
             
             free(sendmessage);
+            free(sendbody);
+            free(sendheader);
             
             if (n < 0) {
                 perror("write error (message to client)\n");
                 break;
             }
         }
+
     }
     
     remove_user(user->nick);

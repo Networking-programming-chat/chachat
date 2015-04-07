@@ -32,7 +32,7 @@ void free_hdr(Msgheader *hdr);
 char* serialize_hdr(char* buffer, Msgheader* hdr);
 
 //take a message body and a header as parameters and, stick them together. returns a pointer to combined string. NULL if weirds.
-char* serialize_everything(char* buffer, Msgheader* hdr);
+void serialize_everything(char *ret, char* buffer, Msgheader* hdr);
 
 //get separate message and hdr to given pointers from a serialize_everything()'d chunk. return less than 0 if fails. NOTE: might not need to copy everything..
 int split_datas(char* chunk, char* message, Msgheader* hdr);

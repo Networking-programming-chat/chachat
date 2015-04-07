@@ -37,5 +37,10 @@ void exitChanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
 //Handling client's quite command message
 void quitMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
 
+/*check if the channel already exit, if not, create one
+*check if the user in the channel, if not, add to
+ */
+void client_to_channel(Msgheader *mesheader);
+
 
 #endif

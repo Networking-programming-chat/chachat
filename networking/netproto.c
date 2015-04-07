@@ -89,13 +89,11 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 
 
 //take a message body and a header as parameters and, stick them together. returns a pointer to combined string. NULL if weirds.
-char* serialize_everything(char* buffer, Msgheader* hdr){
-	if (!buffer || !hdr)
-		return NULL;
-	char *ret = malloc(((hdr->msglen)+43)*sizeof(char));
+void serialize_everything(char *ret, char* buffer, Msgheader* hdr){
+	if (!buffer || !hdr || !ret)
+		return;
 	serialize_hdr(ret, hdr);
-	memcpy(&ret[43], buffer, hdr->msglen);
-	return ret;
+	memcpy(ret + 43, buffer, hdr->msglen);
 }
 
 
@@ -104,11 +102,7 @@ int split_datas(char* chunk, char* message, Msgheader* hdr){
 	if (!chunk || !hdr || !message)
 		return -1;
 	buffer_to_hdr(chunk, hdr);
-	message=malloc(hdr->msglen*sizeof(char));
-	if(!message){
-		perror("malloc");
-		return -1;
-	}
+	print_hdr(hdr);
 	memcpy(message, chunk+43, hdr->msglen);
 	return 0;
 }

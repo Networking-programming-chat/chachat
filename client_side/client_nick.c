@@ -5,6 +5,7 @@ int client_nick(int sockfd, const char *nickname){
     char nick[MAX];
     ssize_t n1;
     int len, nickCnt=3;
+    char *lf;
     //printf("To start chatting type your nickname below.\n");
     //set content to zero
     //memset(nickname, 0, sizeof(nickname));
@@ -13,6 +14,10 @@ int client_nick(int sockfd, const char *nickname){
         printf ("Enter your nickname: ");
         fgets(nick,sizeof(nick),stdin);
         len = strlen(nick);
+        if ((lf=memchr(nick, '\n', MAX)) != NULL){
+			*lf='\0';
+		}
+        
         //printf ("The nickname entered is %d characters long.\n",len);
         
         if(len < MAX_NICKLEN+1){
