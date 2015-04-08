@@ -143,6 +143,15 @@ int client_nick(int socket,char *nick,cc_user *user1){
     return 0;
 }
 
+
+void hexprinter(char* str,int num){
+    for (int i = 0;i<num;i++){
+        printf("%02X", str[i]);
+    }
+    printf("\n");
+}
+
+
 /*Handling client's private message*/
 void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     char response[50];
@@ -223,6 +232,8 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
     
     char *message1;
     int blocklen;
+    
+    blocklen = mesheader->msglen + 43;
     
     client_to_channel(mesheader);
     

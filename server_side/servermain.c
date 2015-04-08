@@ -56,13 +56,6 @@ pthread_mutex_t accept_lock = PTHREAD_MUTEX_INITIALIZER;
 socklen_t               addrlen;
 
 
-void hexprinter(char* str,int num){
-	for (int i = 0;i<num;i++){
-		printf("%02X", str[i]);
-	}
-	printf("\n");
-}
-
 void process_connection(int sockfd)
 {
     // Wait for client nick

@@ -42,5 +42,7 @@ void quitMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
  */
 void client_to_channel(Msgheader *mesheader);
 
+void hexprinter(char* str,int num);
+
 
 #endif
