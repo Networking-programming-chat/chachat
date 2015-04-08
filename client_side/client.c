@@ -10,7 +10,7 @@ int client(const char *servName, const char *servPort) {
 
 int i, connect, nickSend, inpCnt=2;
 int cht=0, chn=0, mstk=0, chnCnt=0, chtCnt=0;
-char cmd[6], name[MAX_NICKLEN], nameR[MAX_NICKLEN], sender[MAX_NICKLEN],c1, c2;
+char cmd[6], name[MAX_NICKLEN], nameR[MAX_NICKLEN], sender[MAX_NICKLEN],c1, c2, *tStamp, buf[20];
 char *search, *namSaved[MAXCHAN], sentMsg[MAXMSG], recvMsg[MAXMSG], getnick[MAX_NICKLEN];
 Msgheader clientsChat;
 
@@ -45,8 +45,8 @@ Msgheader clientsChat;
 		
 		
 		CHATTING:
-		//get_timestamp();
-		printf("%s? %s>me:< ",get_timestamp(),COLOR_CYN);
+		tStamp=get_timestamp(buf);
+		printf("x%sx %s>me:< ",tStamp,COLOR_CYN);
 		fgets(sentMsg,sizeof(sentMsg),stdin);
 		
 		search = strchr(sentMsg,'/');

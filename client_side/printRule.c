@@ -1,6 +1,16 @@
 #include "client.h"
+#include <stdlib.h>
+#include <time.h>
 
+char* get_timestamp(char buffer [20]){
+   time_t rawtime;
+  struct tm * timeinfo;
 
+  time (&rawtime);
+  timeinfo = localtime (&rawtime);
+  strftime (buffer,20,"%H:%M:%S",timeinfo);
+  return buffer;
+}
 
 
 
@@ -26,14 +36,15 @@ void printChatRule(){
 
 void *threadRead(void *argmnt){
 	
-	struct arg_struct *arg = argmnt;
+	struct threadParam *arg = argmnt;
 	int n=0;
+	char buf[20];
 	while(1)
 	{
 		usleep(READ_TIMEOUT_USEC);
-		printf(" %s? %s<%s:> ",get_timestamp(),COLOR_GRN,&arg->header.recipient_id);
+		printf(" x%sx %s<%s:> ",get_timestamp(buf),COLOR_GRN,&arg->header.recipient_id);
 		printf("file descriptor is: %d\n",arg->conn);
-		if ((n = read_message(arg->conn, &arg->recvbuf, &arg->header))<0) {
+		if ((n = read_message(arg->conn, arg->recvbuf, &arg->header))<0) {
 				perror("read_message:");
 				return -1;
 		}
@@ -46,15 +57,5 @@ void *threadRead(void *argmnt){
 
 
 
-char* get_timestamp(){
-   time_t rawtime;
-  struct tm * timeinfo;
-  char buffer [20];
 
-  time (&rawtime);
-  timeinfo = localtime (&rawtime);
-  strftime (buffer,20,"%H:%M:%S.",timeinfo);
-  //puts (buffer);
-  return buffer;
-}
 

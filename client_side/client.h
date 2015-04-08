@@ -28,7 +28,7 @@
 #define THREAD_CNT 2
 
 
-struct arg_struct {
+struct threadParam {
     int conn;
     char *recvbuf;
     Msgheader header;
@@ -40,8 +40,9 @@ int client(const char *servName, const char *servPort);
 
 //prints chat rules and help
 void printChatRule();
+
 //prints the timestamp
-char* get_timestamp();
+char* get_timestamp(char buffer [20]);
 
 //thread for reading incoming messages
 void *threadRead();
