@@ -13,7 +13,6 @@ char* get_timestamp(char buffer [20]){
 }
 
 
-
 void printChatRule(){
 	
 	printf("###########################################################\n");
@@ -34,7 +33,40 @@ void printChatRule(){
 }
 
 
-void *threadRead(void *argmnt){
+void *reader_thread(void *arg) {
+    thread_s *id;
+    int sockfd;
+    ssize_t n;
+    char buffer[1024];
+    char buf[20];
+    id = (thread_s*) arg;
+    sockfd = id->socketfd;
+
+    printf("reader socket: %d\n", id->socketfd);
+    
+    // Read socket in a loop
+    for (;;) {
+		printf(" x%sx %s<%s:> ",get_timestamp(buf),COLOR_GRN,&id->header.recipient_id);
+		printf("file descriptor is: %d\n",sockfd);
+		n = read_message(sockfd, buffer, &id->header);
+        n = read(sockfd, buffer, 1023);
+        if (n < 0) {
+            perror("read error");
+            break;
+        }
+        
+        if (n > 0) {
+            // Write to stdout
+            printf("%s", buffer);
+        }
+    }
+    
+    printf("Reader thread finished\n");
+    
+    pthread_exit(arg);
+}
+
+/* void *threadRead(void *argmnt){
 	
 	struct threadParam *arg = argmnt;
 	int n=0;
@@ -53,7 +85,7 @@ void *threadRead(void *argmnt){
 	}
 
 	return NULL;
-}
+} */
 
 
 

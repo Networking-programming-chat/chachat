@@ -14,6 +14,12 @@ recv = (char *) malloc(MAXMSG);
 tParams.header=chatheader;
 tParams.recvbuf=recv;
 tParams.conn=connfd;
+
+thread_s *thread;
+thread = malloc(sizeof(thread_s));
+
+
+
 			//always send the string length of the sent msg
 	        chatheader.msglen=strlen(send); 
 	        
@@ -26,7 +32,10 @@ tParams.conn=connfd;
 			printf("fd should be: %d\n",tParams.conn);
 			
 /*			//receives destination client's message	*/
-			pthread_create(&read,NULL,threadRead,&tParams);
+			thread->socketfd = connfd;
+			thread->recvbuf = recv;
+			thread->header = chatheader;
+            n = pthread_create(&(thread->thread_id), NULL, reader_thread, (void*)thread);
 	
 			recv[n] = 0;        // null terminate 
 			if (fputs(recv, stdout) == EOF) {
@@ -36,6 +45,3 @@ tParams.conn=connfd;
 	free(recv);
  return 0;
 }
-
-
-

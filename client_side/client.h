@@ -34,6 +34,12 @@ struct threadParam {
     Msgheader header;
 };
 
+typedef struct {
+    pthread_t thread_id;
+    int socketfd;
+	char *recvbuf;
+	Msgheader header;
+} thread_s;
 
 //client function:
 int client(const char *servName, const char *servPort);
@@ -45,7 +51,7 @@ void printChatRule();
 char* get_timestamp(char buffer [20]);
 
 //thread for reading incoming messages
-void *threadRead();
+void *reader_thread(void *arg);
 
 //handles input at the start of chat 
 int startChat(char *getCmd, char *getName);
