@@ -34,9 +34,9 @@ $(CLIENT):
 	mv clienttest ../bin/$(CLIENT)
 
 cleanobjects:
-	rm -f $(SERVERSRCPATH)*.o *.a
+	rm -f ./server_side/*.o ./server_side/*.a
 
 clean: cleanobjects
-	rm -fr bin *~ *.a *.db
+	rm -fr bin *~ ./server_side/*.a ./server_side/*.db
 
 .PHONY: dbtest threadtest all clean
