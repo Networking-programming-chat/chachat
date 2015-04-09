@@ -158,14 +158,15 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     Msgheader *respheader;
     char *message;
     ssize_t n1;
-    int blocklen;
+    //int blocklen;
    
-    blocklen = mesheader->msglen + 43;
-    message = malloc(blocklen*sizeof(char));
+    //blocklen = mesheader->msglen + 43;
+    message = malloc((MAXMSG+HDRSIZE)*sizeof(char));
+    memset(message, 0, MAXMSG+HDRSIZE);
     //merge the header and the message body
     //print_hdr(mesheader);
     serialize_everything(message, mesbuff,mesheader);
-    hexprinter(message, 45);
+    hexprinter(message, 43);
     
     printf("message body2: %s\n",mesbuff);
     
@@ -203,7 +204,7 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
         printf("dest user:\n");
         print_user(destuser);
     }
-    write_to_buffer(destuser->user_id, message, blocklen);
+	write_to_buffer(destuser->user_id, message, MAXMSG+HDRSIZE);
     
     free(message);
     free(respheader);
@@ -236,9 +237,9 @@ void client_to_channel(Msgheader * mesheader){
 void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join channel message
     
     char *message1;
-    int blocklen;
+    //int blocklen;
     
-    blocklen = mesheader->msglen + 43;
+    //blocklen = mesheader->msglen + 43;
     
     client_to_channel(mesheader);
     
@@ -262,7 +263,7 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
     
     while (chanuser!=NULL) {
         printf("write to %s buffer\n",chanuser->nick);
-        write_to_buffer(chanuser->user_id,message1, blocklen);
+        write_to_buffer(chanuser->user_id,message1, MAXMSG+HDRSIZE+1);
         chanuser=chanuser->next_user;
         
     }

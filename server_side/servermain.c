@@ -58,48 +58,43 @@ socklen_t               addrlen;
 
 void process_connection(int sockfd)
 {
-    // Wait for client nick
     
-    char nickname[MAX_NICKLEN];
+	char* sendmessage,*sendbody,*mesbuff;
+	Msgheader *sendheader,*mesheader;
+	char nickname[MAX_NICKLEN];
+	int i = 0;
+	ssize_t n;
+	struct timespec ts;
+	cc_user *user;
+	fd_set rset;
 
-    //char incoming[1024];
 
-    char *mesbuff;
-    mesbuff=(char *)malloc(MAXMSG*sizeof(char)+1);
-    Msgheader *mesheader;
-    mesheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
-    
-    int i = 0;
-    ssize_t n;
-    struct timespec ts;
-    // TODO: Initialize new user somewhere!
-    cc_user *user;
-    user=(cc_user *)malloc(sizeof(cc_user));
-    
-    // Select stuff
-    fd_set rset;
-    
-    if((client_nick(sockfd,nickname,user))<0) {
-        close(sockfd);
-        return;
-    }
+	sendbody=(char *)malloc(MAXMSG*sizeof(char)+1);
+	sendheader=malloc(sizeof(Msgheader));
+	memset(sendbody,0, MAXMSG+1);
+	memset(sendheader,0, sizeof(Msgheader));
 
-    // Register message buffer
-    new_buffer(user->user_id);
+	mesbuff=(char *)malloc(MAXMSG*sizeof(char)+1);
+	mesheader=malloc(sizeof(Msgheader));
 
-    
-    printf("start processing\n");
-    
-    // Process client messages
+	//Initialize new user somewhere!
+	user=(cc_user *)malloc(sizeof(cc_user));
+
+	
+	//User initialized by client_nick!
+	if((client_nick(sockfd,nickname,user))<0) {
+		close(sockfd);
+		return;
+	}
+
+	// Register message buffer
+	new_buffer(user->user_id);
+
+
+	printf("start processing\n");
+	
+	// Process client messages
     for (;;) {
-        char * sendmessage;
-        sendmessage=(char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
-        
-        char *sendbody;
-        sendbody=(char *)malloc(MAXMSG*sizeof(char)+1);
-        
-        Msgheader *sendheader;
-        sendheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
         
         FD_ZERO(&rset);
         FD_SET(sockfd, &rset);
@@ -114,8 +109,8 @@ void process_connection(int sockfd)
         
         if (FD_ISSET(sockfd, &rset)) {
             
-            memset(mesbuff,0,sizeof(mesbuff));
-            memset(mesheader,0,sizeof(mesheader));
+            memset(mesbuff,0,MAXMSG+1);
+            memset(mesheader,0,sizeof(Msgheader));
             
             // Read message
             n = read_message(sockfd, mesbuff, mesheader);
@@ -125,7 +120,7 @@ void process_connection(int sockfd)
                 break;
             }
             
-            hexprinter(mesheader,45);
+            hexprinter(mesheader,43);
             
             if (n > 0) {
                 
@@ -151,14 +146,17 @@ void process_connection(int sockfd)
             }
         }
         
-        memset(sendmessage,0,sizeof(sendmessage));
         
         // Check for messages for client
         sendmessage = read_buffer(user->user_id);
+		//if(sendmessage) printf("sendmesg is not null!\n");
+		//else printf("sendmsg is null\n");
         
         if (sendmessage != NULL) {
-            
-           // hexprinter(sendmessage, 45);
+			memset(sendbody,0, MAXMSG+1);
+			memset(sendheader,0, sizeof(Msgheader));
+			            
+           // hexprinter(sendmessage, 43);
     		split_datas(sendmessage,sendbody,sendheader);
             
             print_hdr(sendheader);
@@ -168,17 +166,14 @@ void process_connection(int sockfd)
             
             // Send to client
             pass_message(sockfd,sendbody,sendheader);
-            
-            free(sendmessage);
-            free(sendbody);
-            free(sendheader);
+			free(sendmessage);            
         }
-        
-        
         
 
     }
-    
+	free(sendbody);
+	free(sendheader);
+
     remove_user(user->nick);
 	free(mesbuff);
 	free(mesheader);
