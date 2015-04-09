@@ -74,12 +74,14 @@ Servers may implement timeouts to check the status of other threads, and resume 
 
 #5. Implementation description
 
-##The clients
+###The clients
 
-### Overview
+####Overview
 
 Chachat is a simple easy to use chatting application designed for now to be used on the terminal. Only the unix version is designed and released at this point in time. But there are plans to develop a beta version which will be cross-platform mush later. It works somewhat like IRC but ours is designed and planned to work even better. 
 Emphasis is on the simplicity of use and robustness of this application. Our seasoned professional developers worked really hard, day and night to make it a reality. Unlike many other terminal chat clients, Chachat is designed and developed to be extremely user friendly. Like earlier said, it works just like the IRC, having functionalities for private chats and channel conversations. Just follow the simple rules and you will be amazed at the wonderful chatting experience you will have.
+
+####Description
 
 The client is designed to be very eye catchy and user friendly. It is planned to offer a number of functionalities such as chatting, joining channels and lots more. It uses pretty nice colors to display texts on the terminal and in addition utilizes the time API to provide timestamps, perhaps could be helpful to keep track of chat history, time or for other use. We are afraid that potential users might get carried away using our chat client as it is simply irresistible. We hope to offer more services and functionalities later in the future as the development time was not enough to implement all our designs. Nonetheless, the client, I believe could rival IRC soon after this Alfa release.
 It equally uses threads for reading incoming messages from other clients. This was thought to be a wise move because it would be nice to also receive messages irrespective of whether or not you are sending. Hence, the need to implement the reading function in a thread that run parallel as the user sends messages between one another. Figure 1. below demonstrates the very early planning phase of this project.
