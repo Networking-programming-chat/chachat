@@ -30,7 +30,7 @@ thread->socketfd = connect;
     nickSend = client_nick(connect, getnick);
     strcpy(sender,getnick);
     //printf("your nick is %s ",getnick);
-	if(strlen(nickSend) < 0){
+	if(nickSend < 0){
 		printf("There is problem writing nickname to the server\n");
 	}else{
 	    
@@ -48,7 +48,6 @@ thread->socketfd = connect;
 		CHATTING:
 		tStamp=get_timestamp(buf);	
 		printf("x%sx %s>%s:< ",tStamp,COLOR_CYN,sender);
-		//printf("x%sx %s>%s:< ",tStamp,COLOR_CYN,sender);
 		fgets(sentMsg,sizeof(sentMsg),stdin);
 		
 		search = strchr(sentMsg,'/');

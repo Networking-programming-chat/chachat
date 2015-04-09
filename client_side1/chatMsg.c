@@ -19,11 +19,11 @@ int n=1;
 			}
 			
 	
-			send[n] = 0;        // null terminate 
+			/* send[n] = 0;        // null terminate 
 			if (fputs(send, stdout) == EOF) {
 				fprintf(stderr, "fputs error\n");
 				return -1;
-			}
+			} */
 	
  return 0;
 }
