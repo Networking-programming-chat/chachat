@@ -150,7 +150,7 @@ void *reader_thread(void *arg) {
         memset(buffer,0,sizeof(buffer));
         n = read_message(sockfd,buffer,&header);
         if (n < 0) {
-            perror("read error");
+            //perror("read error");
             break;
         }
         
