@@ -258,7 +258,7 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
     }
     
     while (chanuser!=NULL) {
-        printf("write to %s buffer\n",chanuser->user_id);
+        printf("write to %s buffer\n",chanuser->nick);
         write_to_buffer(chanuser->user_id,message1, blocklen);
         chanuser=chanuser->next_user;
         

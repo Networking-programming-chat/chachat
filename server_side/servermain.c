@@ -63,11 +63,6 @@ void process_connection(int sockfd)
     char nickname[MAX_NICKLEN];
 
     //char incoming[1024];
-    
-    char *sendbody;
-    sendbody=(char *)malloc(MAXMSG*sizeof(char)+1);
-    Msgheader *sendheader;
-    sendheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
 
     char *mesbuff;
     mesbuff=(char *)malloc(MAXMSG*sizeof(char)+1);
@@ -158,7 +153,8 @@ void process_connection(int sockfd)
             
             print_hdr(sendheader);
             
-            printf("Will send to client: %s\n", sendbody);
+            printf("sendbody:\n");
+            printf("%s\n",sendbody);
             
             // Send to client
             pass_message(sockfd,sendbody,sendheader);
@@ -166,12 +162,10 @@ void process_connection(int sockfd)
             free(sendmessage);
             free(sendbody);
             free(sendheader);
-            
-            if (n < 0) {
-                perror("write error (message to client)\n");
-                break;
-            }
         }
+        
+        
+        
 
     }
     
