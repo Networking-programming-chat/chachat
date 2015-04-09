@@ -17,7 +17,9 @@ recv = (char *) malloc(MAXMSG);
 
 thread_s *thread;
 thread = malloc(sizeof(thread_s));
-
+thread->socketfd = connfd;
+thread->recvbuf = recv;
+thread->header = chatheader;
 
 
 			//always send the string length of the sent msg
@@ -32,9 +34,7 @@ thread = malloc(sizeof(thread_s));
 			//printf("fd should be: %d\n",tParams.conn);
 			
 /*			//receives destination client's message	*/
-			thread->socketfd = connfd;
-			thread->recvbuf = recv;
-			thread->header = chatheader;
+			
             n = pthread_create(&(thread->thread_id), NULL, reader_thread, (void*)thread);
 	
 			recv[n] = 0;        // null terminate 

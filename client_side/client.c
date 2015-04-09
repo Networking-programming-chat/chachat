@@ -39,13 +39,13 @@ Msgheader clientsChat;
 		clientsChat.sender_id=getnick;
 		memset(sentMsg, 0, sizeof(sentMsg));
 		
-	tStamp=get_timestamp(buf);	
-	printf("x%sx %s>%s:< ",tStamp,COLOR_CYN,sender);	
+		
 	while(clientsChat.firstbyte != '4' || mstk != 3){	
 		
 		
 		CHATTING:
-		
+		tStamp=get_timestamp(buf);	
+		printf("x%sx %s>%s:< ",tStamp,COLOR_CYN,sender);
 		//printf("x%sx %s>%s:< ",tStamp,COLOR_CYN,sender);
 		fgets(sentMsg,sizeof(sentMsg),stdin);
 		
