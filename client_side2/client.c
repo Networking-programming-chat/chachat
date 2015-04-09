@@ -1,3 +1,5 @@
+//Chachat all copyright reserved
+
 #include "client.h"
 
 
@@ -110,19 +112,20 @@ void printChatRule(){
     printf("%sAnd you can only make mistakes 3 times.\n",COLOR_RED);
     printf("%sIf you have any problem, simply type: help\n",COLOR_WHT);
     printf("%sDo have fun! using our service. :)\n",COLOR_YEL);
-    printf("%sAnd chachat channel is for internal use only\n",COLOR_RED);
+    printf("%sAnd chachat channel is for internal use only!\n",COLOR_RED);
     printf("%s###########################################################\n",COLOR_RESET);
     
 }
 
 //Handling client's private chat command and message
 int chatMessageHandle(int connfd, char *send, Msgheader chatheader){
-    
-    int n=1;
+    //char buf[20];
+    int n=0;
     
     //always send the string length of the sent msg
     chatheader.msglen=strlen(send);
-    
+/*    get_timestamp(buf);*/
+/*    printf("x%sx %s>me:< ",buf,COLOR_CYN);*/
     //sends source client's message
     if ((n=pass_message(connfd, send, &chatheader))<0) {
         perror("pass_message:");
@@ -141,23 +144,24 @@ int chatMessageHandle(int connfd, char *send, Msgheader chatheader){
 
 //Handling client's channel join command message
 int chanMessageHandle(int connfd, char *send, Msgheader chatheader){
-    
-    int n=1;
+    //char buf[20];
+    int n=0;
     
     //always send the string length of the sent msg
     chatheader.msglen=strlen(send);
-    
+/*    get_timestamp(buf);*/
+/*    printf("x%sx %s>me:< ",buf,COLOR_CYN);*/
     //sends source client's message
     if ((n=pass_message(connfd, send, &chatheader))<0) {
         perror("pass_message:");
         return -1;
     }
     
-    send[n] = 0;        // null terminate
-    if (fputs(send, stdout) == EOF) {
-        fprintf(stderr, "fputs error\n");
-        return -1;
-    }
+/*    send[n] = 0;        // null terminate*/
+/*    if (fputs(send, stdout) == EOF) {*/
+/*        fprintf(stderr, "fputs error\n");*/
+/*        return -1;*/
+/*    }*/
     
     return 0;
 }
@@ -166,7 +170,7 @@ int send_message(int connect,char *nickname){
     
     int inpCnt=2;
     int cht=0, chn=0, mstk=0, chnCnt=0, chtCnt=0;
-    char cmd[6], name[MAX_NICKLEN], nameR[MAX_NICKLEN], sender[MAX_NICKLEN],c1, c2, buf[20];
+    char cmd[6], name[MAX_NICKLEN], nameR[MAX_NICKLEN],c1, c2, buf[20];
     char *search, sentMsg[MAXMSG];
     Msgheader clientsChat;
 
@@ -182,10 +186,10 @@ int send_message(int connect,char *nickname){
         
         while(clientsChat.firstbyte != '4' || mstk != 3){
             
-            
+            //printf("x%sx %s>me:< ",buf,COLOR_CYN,sender);
         CHATTING:
             get_timestamp(buf);
-            printf("x%sx %s>%s:< ",buf,COLOR_CYN,sender);
+            printf("x%sx %s>me:< ",buf,COLOR_CYN);
             fgets(sentMsg,sizeof(sentMsg),stdin);
             
             search = strchr(sentMsg,'/');
@@ -198,6 +202,7 @@ int send_message(int connect,char *nickname){
                 //printf("chat=%d and chan=%d\n", chtCnt, chnCnt);
                
                 chatMessageHandle(connect, sentMsg, clientsChat); //chat messenger function
+                //printf("x%sx %s>me:< ",buf,COLOR_CYN,sender);
                 memset(sentMsg, 0, sizeof(sentMsg)); //empty message buffer
                 continue;
                 
@@ -209,6 +214,7 @@ int send_message(int connect,char *nickname){
                 //printf("chat=%d and chan=%d\n", chtCnt, chnCnt);
                
                 chanMessageHandle(connect, sentMsg, clientsChat); //chan messenger function
+                //printf("x%sx %s>me:< ",buf,COLOR_CYN,sender);
                 memset(sentMsg, 0, sizeof(sentMsg)); //empty message buffer
                 continue;
                 
@@ -366,4 +372,3 @@ int send_message(int connect,char *nickname){
     return 0;
     
 }
-
