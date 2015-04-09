@@ -106,7 +106,7 @@ int client_nick(int socket,char *nick,cc_user *user1){
             return -1;
         }
         
-        printf("sender's_id is %s\n", nickname);
+       // printf("sender's_id is %s\n", nickname);
         
         user= add_user_server(nickname,0);
         
@@ -163,11 +163,11 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     blocklen = mesheader->msglen + 43;
     message = malloc(blocklen*sizeof(char));
     //merge the header and the message body
-    print_hdr(mesheader);
+    //print_hdr(mesheader);
     serialize_everything(message, mesbuff,mesheader);
-    hexprinter(message, 45);
+   // hexprinter(message, 45);
     buffer_to_hdr(message, mesheader);
-    print_hdr(mesheader);
+   // print_hdr(mesheader);
     
     
     //print_hdr(mesheader);
@@ -197,6 +197,7 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     }
     
     else if(destuser!=NULL){
+        printf("dest user:\n");
         print_user(destuser);
     }
     write_to_buffer(destuser->user_id, message, blocklen);
@@ -210,6 +211,7 @@ void client_to_channel(Msgheader * mesheader){
     
     if (get_channel_by_name(mesheader->recipient_id)==NULL) {
         add_channel(mesheader->recipient_id);
+        
     }
     
     cc_user * chanuser=get_users_by_channel_name(mesheader->recipient_id);
@@ -250,14 +252,13 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
     chanuser = get_users_by_channel_name(mesheader->recipient_id);
     
     printf("The users in channel %s",mesheader->recipient_id);
-    print_user_list(chanuser);
-    printf("\n");
     
     if (chanuser==NULL) {
         printf("There is no such channel\n");
     }
     
     while (chanuser!=NULL) {
+        printf("write to %s buffer\n",chanuser->user_id);
         write_to_buffer(chanuser->user_id,message1, blocklen);
         chanuser=chanuser->next_user;
         
@@ -269,7 +270,12 @@ void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){ ///join 
 
 //Handling client's exit channel message
 void exitChanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){
+    
+    printf("exit command\n");
+    
     part_channel(mesheader->sender_id,mesheader->recipient_id);
+    
+    printf("exit %s success\n",mesheader->recipient_id);
 }
 
 //Handling client's quite command message
@@ -278,8 +284,6 @@ void quitMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader){//quit co
     printf("quit command\n");
     
     remove_user(mesheader->sender_id);
-    
-    close(connfd);
     
 }
 

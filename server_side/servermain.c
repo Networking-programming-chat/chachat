@@ -83,56 +83,11 @@ void process_connection(int sockfd)
     
     // Select stuff
     fd_set rset;
-
-    
-   /* for (;;) {
-        n = read(sockfd, nickname, MAX_NICKLEN - 1);
-        if (n < 0) {
-            perror("read error (reading nickname)");
-            return;
-        }
-        
-        user = add_user_server(nickname, 0);
-        
-        if (user == NULL) {
-            printf("Nickname %s already in use.\n", nickname);
-            sprintf(response,"ERROR nickname already in use\n");
-            
-            n = write(sockfd,response,sizeof(response));
-            
-            if (n < 0) {
-                perror("write error (nickname response)");
-                return;
-            }
-            
-            if (i++ < 3) {
-                // Try again
-                continue;
-            }
-            
-            sprintf(response,"ERROR retry count full\n");
-        }
-        else {
-            printf("Client nick: %s user id: %d\n", nickname, user->user_id);
-            sprintf(response,"OK nickname set\n");
-        }
-        
-        // Done here
-        break;
-    }*/
     
     if((client_nick(sockfd,nickname,user))<0) {
         close(sockfd);
         return;
     }
-        
-    
-    /*n = write(sockfd, response, sizeof(response));
-    
-    if (n < 0) {
-        perror("write error (nickname final response)");
-    }*/
-    
 
     // Register message buffer
     new_buffer(user->user_id);
@@ -162,7 +117,6 @@ void process_connection(int sockfd)
         if (FD_ISSET(sockfd, &rset)) {
             
             // Read message
-           // n = recv(sockfd, incoming, 1023, 0);
             n = read_message(sockfd, mesbuff, mesheader);
             
             if (n < 0) {
@@ -170,19 +124,10 @@ void process_connection(int sockfd)
                 break;
             }
             
+            hexprinter(mesheader,45);
+            
             if (n > 0) {
-                /*
-                // Handle message sent by client
                 
-                n = handle_message(user, incoming);
-                if (n < 0) {
-                    // Quit message sent
-                    break;
-                }
-                
-                //write_to_buffer(user->user_id, incoming);
-                //printf("Received message: %s\n", incoming);
-                 */
                 
                 if (mesheader->firstbyte=='1') {//client sends private chat message
                     chatMessageHandle(sockfd, mesbuff, mesheader);
@@ -197,7 +142,7 @@ void process_connection(int sockfd)
                     
                 }else if (mesheader->firstbyte=='4') {//client sends quit command
                     quitMessageHandle(sockfd,mesbuff,mesheader);
-                    
+                    return;
                     
                 }
             }
@@ -216,7 +161,6 @@ void process_connection(int sockfd)
             printf("Will send to client: %s\n", sendbody);
             
             // Send to client
-            // n = write(sockfd, sendmessage, n+1);
             pass_message(sockfd,sendbody,sendheader);
             
             free(sendmessage);
