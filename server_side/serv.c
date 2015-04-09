@@ -165,7 +165,10 @@ void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
     //merge the header and the message body
     //print_hdr(mesheader);
     serialize_everything(message, mesbuff,mesheader);
-   // hexprinter(message, 45);
+    hexprinter(message, 45);
+    
+    printf("message body2: %s\n",mesbuff);
+    
     buffer_to_hdr(message, mesheader);
    // print_hdr(mesheader);
     

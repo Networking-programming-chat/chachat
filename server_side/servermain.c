@@ -93,8 +93,11 @@ void process_connection(int sockfd)
     // Process client messages
     for (;;) {
         char * sendmessage;
+        sendmessage=(char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
+        
         char *sendbody;
         sendbody=(char *)malloc(MAXMSG*sizeof(char)+1);
+        
         Msgheader *sendheader;
         sendheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
         
@@ -111,6 +114,9 @@ void process_connection(int sockfd)
         
         if (FD_ISSET(sockfd, &rset)) {
             
+            memset(mesbuff,0,sizeof(mesbuff));
+            memset(mesheader,0,sizeof(mesheader));
+            
             // Read message
             n = read_message(sockfd, mesbuff, mesheader);
             
@@ -123,6 +129,8 @@ void process_connection(int sockfd)
             
             if (n > 0) {
                 
+                printf("message body1: %s\n",mesbuff);
+
                 
                 if (mesheader->firstbyte=='1') {//client sends private chat message
                     chatMessageHandle(sockfd, mesbuff, mesheader);
@@ -143,12 +151,14 @@ void process_connection(int sockfd)
             }
         }
         
+        memset(sendmessage,0,sizeof(sendmessage));
+        
         // Check for messages for client
         sendmessage = read_buffer(user->user_id);
         
         if (sendmessage != NULL) {
             
-            hexprinter(sendmessage, 45);
+           // hexprinter(sendmessage, 45);
     		split_datas(sendmessage,sendbody,sendheader);
             
             print_hdr(sendheader);
