@@ -167,7 +167,7 @@ int send_message(int connect,char *nickname){
     int inpCnt=2;
     int cht=0, chn=0, mstk=0, chnCnt=0, chtCnt=0;
     char cmd[6], name[MAX_NICKLEN], nameR[MAX_NICKLEN], sender[MAX_NICKLEN],c1, c2, buf[20];
-    char *search, sentMsg[MAXMSG], getnick[MAX_NICKLEN];
+    char *search, sentMsg[MAXMSG];
     Msgheader clientsChat;
 
     {
@@ -176,7 +176,7 @@ int send_message(int connect,char *nickname){
         clientsChat.firstbyte='0';
         clientsChat.msglen=0;
         clientsChat.recipient_id="0";
-        clientsChat.sender_id=getnick;
+        clientsChat.sender_id=nickname;
         memset(sentMsg, 0, sizeof(sentMsg));
         
         
@@ -193,7 +193,7 @@ int send_message(int connect,char *nickname){
             if(search == NULL && cht==1 && clientsChat.firstbyte=='1' && chtCnt!=0){
                 clientsChat.msglen=strlen(sentMsg);
                 clientsChat.recipient_id=nameR;
-                clientsChat.sender_id=getnick;
+                clientsChat.sender_id=nickname;
                 //printf("User: %s , opt=%c\n", sentMsg, clientsChat.firstbyte);
                 //printf("chat=%d and chan=%d\n", chtCnt, chnCnt);
                
@@ -204,7 +204,7 @@ int send_message(int connect,char *nickname){
             }else if(search == NULL && chn==1 && clientsChat.firstbyte=='2' && chnCnt!=0){
                 clientsChat.msglen=strlen(sentMsg);
                 clientsChat.recipient_id=nameR;
-                clientsChat.sender_id=getnick;
+                clientsChat.sender_id=nickname;
                 //printf("User: %s , opt=%c\n", sentMsg, clientsChat.firstbyte);
                 //printf("chat=%d and chan=%d\n", chtCnt, chnCnt);
                
@@ -226,7 +226,7 @@ int send_message(int connect,char *nickname){
                         clientsChat.firstbyte='3';
                         clientsChat.msglen=0;
                         clientsChat.recipient_id=NULL;
-                        clientsChat.sender_id=getnick;
+                        clientsChat.sender_id=nickname;
                         pass_message(connect, sentMsg, &clientsChat);
                         
                         //to support multple channels at a time
@@ -267,7 +267,7 @@ int send_message(int connect,char *nickname){
                     clientsChat.firstbyte='4';
                     clientsChat.msglen=0;
                     clientsChat.recipient_id=NULL;
-                    clientsChat.sender_id=getnick;
+                    clientsChat.sender_id=nickname;
                     pass_message(connect, sentMsg, &clientsChat);
                     mstk=3;
                     return-1;
@@ -286,7 +286,7 @@ int send_message(int connect,char *nickname){
                                 clientsChat.firstbyte='1';
                                 clientsChat.msglen=0;
                                 clientsChat.recipient_id=nameR;
-                                clientsChat.sender_id=getnick;
+                                clientsChat.sender_id=nickname;
                                 cht=1;
                                 inpCnt = 0;
                                 chtCnt +=1;
@@ -312,7 +312,7 @@ int send_message(int connect,char *nickname){
                                 clientsChat.firstbyte='2';
                                 clientsChat.msglen=0;
                                 clientsChat.recipient_id=nameR;
-                                clientsChat.sender_id=getnick;
+                                clientsChat.sender_id=nickname;
                                 chn=1;
                                 inpCnt = 0;
                                 chnCnt +=1;
