@@ -36,11 +36,11 @@ int client_nick(int sockfd, char *nickname){
         printf("read client name error\n");
         return -1;
     }
-    sprintf(nickname,"%s",nick);
+    
     //printf ("Your nickname is %s\n",nickname);
 	//existCnt++;
     // Empty the buffer used in storing the nickname.
-    bzero(nick,sizeof(nick));
+    //bzero(nick,sizeof(nick));
     
     uint16_t existCnt=0;
     char nickExist;
@@ -55,6 +55,9 @@ int client_nick(int sockfd, char *nickname){
     while(nickExist=='2'){
         printf ("Nickname already in use, enter a new nickname: ");
         fgets(nick,sizeof(nick),stdin);
+        if ((lf=memchr(nick, '\n', MAX)) != NULL){
+			*lf='\0';
+		}
         if ((n1=write(sockfd, nick, strlen(nick)))<0) {
             printf("send client name error\n");
             return -1;
@@ -76,7 +79,7 @@ int client_nick(int sockfd, char *nickname){
 	   if(nickExist=='1'){
 		   printf("Name successfully added\n");
 	   }
-    
+    sprintf(nickname,"%s",nick);
     
     
     

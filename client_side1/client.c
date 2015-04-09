@@ -8,25 +8,29 @@
 int client(const char *servName, const char *servPort) {
 
 
-int i, connect, nickSend, inpCnt=2;
+int connect, nickSend, inpCnt=2;
 int cht=0, chn=0, mstk=0, chnCnt=0, chtCnt=0;
-char cmd[6], name[MAX_NICKLEN], c1;
-char *search, *namSaved[MAXCHAN], sentMsg[MAXMSG], recvMsg[MAXMSG], *nick_name;
+char cmd[6], name[MAX_NICKLEN], nameR[MAX_NICKLEN], sender[MAX_NICKLEN],c1, c2, *tStamp, buf[20];
+char *search, sentMsg[MAXMSG], recvMsg[MAXMSG], getnick[MAX_NICKLEN];
 Msgheader clientsChat;
 
 	if ((connect=client_connect(servName, servPort))<0) {
 		perror("tcp connection error\n");
 	return -1;
 	}
-	
+thread_s *thread;
+thread = malloc(sizeof(thread_s));
+thread->socketfd = connect;
 	
 	//set content to zero
 	memset(&clientsChat, 0, sizeof(clientsChat));
 	
 	printChatRule();
     //check if sending nick to the server was successful
-    nick_name = client_nick(connect);
-	if(strlen(nick_name) < 0){
+    nickSend = client_nick(connect, getnick);
+    strcpy(sender,getnick);
+    //printf("your nick is %s ",getnick);
+	if(strlen(nickSend) < 0){
 		printf("There is problem writing nickname to the server\n");
 	}else{
 	    
@@ -34,39 +38,54 @@ Msgheader clientsChat;
 	    clientsChat.firstbyte='0';
 		clientsChat.msglen=0;
 		clientsChat.recipient_id="0";
-		clientsChat.sender_id=nick_name;
+		clientsChat.sender_id=getnick;
 		memset(sentMsg, 0, sizeof(sentMsg));
-		
 		
 		
 	while(clientsChat.firstbyte != '4' || mstk != 3){	
 		
 		
 		CHATTING:
-		printf("%s:> ",nick_name);
+		tStamp=get_timestamp(buf);	
+		printf("x%sx %s>%s:< ",tStamp,COLOR_CYN,sender);
+		//printf("x%sx %s>%s:< ",tStamp,COLOR_CYN,sender);
 		fgets(sentMsg,sizeof(sentMsg),stdin);
 		
 		search = strchr(sentMsg,'/');
 		
-	    if(search == NULL && cht==1 && clientsChat.firstbyte=='1' && chtCnt!= 0){
+	    if(search == NULL && cht==1 && clientsChat.firstbyte=='1' && chtCnt!=0){
 			clientsChat.msglen=strlen(sentMsg);
-			clientsChat.recipient_id=name;
-			clientsChat.sender_id=nick_name;
-			printf("User: %s , opt=%c\n", sentMsg, clientsChat.firstbyte);
-			printf("chat=%d and chan=%d\n", chtCnt, chnCnt);
+			clientsChat.recipient_id=nameR;
+			clientsChat.sender_id=getnick;
+			//printf("User: %s , opt=%c\n", sentMsg, clientsChat.firstbyte);
+			//printf("chat=%d and chan=%d\n", chtCnt, chnCnt);
+<<<<<<< HEAD
+			thread->recvbuf = recvMsg;
+			thread->header = clientsChat;
+			pthread_create(&(thread->thread_id), NULL, reader_thread, (void*)thread);
+			chatMessageHandle(connect, sentMsg, clientsChat); //chat messenger function
+=======
 		
 			chatMessageHandle(connect, sentMsg, recvMsg, clientsChat); //chat messenger function
+>>>>>>> 7da416bb3dae1c028b3fbd03489f547a9cd42c51
 			memset(sentMsg, 0, sizeof(sentMsg)); //empty message buffer
-			continue;	
+			continue;
 			
 		}else if(search == NULL && chn==1 && clientsChat.firstbyte=='2' && chnCnt!=0){
 			clientsChat.msglen=strlen(sentMsg);
-			clientsChat.recipient_id=name;
-			clientsChat.sender_id=nick_name;
-			printf("User: %s , opt=%d\n", sentMsg, clientsChat.firstbyte);
-			printf("chat=%d and chan=%d\n", chtCnt, chnCnt);
+			clientsChat.recipient_id=nameR;
+			clientsChat.sender_id=getnick;
+			//printf("User: %s , opt=%c\n", sentMsg, clientsChat.firstbyte);
+			//printf("chat=%d and chan=%d\n", chtCnt, chnCnt);
+<<<<<<< HEAD
+			thread->recvbuf = recvMsg;
+			thread->header = clientsChat;
+			pthread_create(&(thread->thread_id), NULL, reader_thread, (void*)thread);
+			chanMessageHandle(connect, sentMsg, clientsChat); //chan messenger function
+=======
 			
 			chanMessageHandle(connect, sentMsg, recvMsg, clientsChat); //chat messenger function
+>>>>>>> 7da416bb3dae1c028b3fbd03489f547a9cd42c51
 			memset(sentMsg, 0, sizeof(sentMsg)); //empty message buffer
 			continue;
 		 
@@ -78,35 +97,26 @@ Msgheader clientsChat;
 					inpCnt = 0;
 					mstk+=1;
 				}else{
-					clientsChat.firstbyte=clientsChat.firstbyte;
-					if (clientsChat.firstbyte=='1' && chtCnt>1){
-						printf("You've stopped a private chat.\n");
-						chtCnt-=1;
-		
-						//to support multple private sessions at a time
-						if(chtCnt==0){
-							printf("You've stopped all private chat.\n");
-							cht=0;
-						}
-						inpCnt = 0;
-						
-						//to continue group chat
-						goto CHATTING;
-					}else if (clientsChat.firstbyte=='2' && chnCnt>1){
+					if(clientsChat.firstbyte=='2' && chnCnt>=1){
 						printf("You've stopped a channel discussion.\n");
 						chnCnt-=1;
+						clientsChat.firstbyte='3';
+						clientsChat.msglen=0;
+						clientsChat.recipient_id=NULL;
+						clientsChat.sender_id=getnick;
+						pass_message(connect, sentMsg, &clientsChat);
 						
-						//to support multple channels at a time
-						if(chnCnt==0){
-							printf("You've stopped all channel discussion.\n");
-							chn=0;
-						}
+					//to support multple channels at a time
+					if(chnCnt==0){
+						printf("You've stopped all channel discussion.\n");
+						chn=0;
+					}
 						inpCnt = 0;
 						
 						//to continue private chat
 						goto CHATTING;
-					}else if ((clientsChat.firstbyte=='0' && chtCnt==0) || (clientsChat.firstbyte=='0' && chnCnt==0)){
-						printf("You leave without chatting. \n");
+					}else if(clientsChat.firstbyte=='0' && chnCnt==0){
+						printf("You left without chatting or joining a channel.\n");
 						cht=0;
 						inpCnt = 0;
 						return -1;
@@ -119,7 +129,7 @@ Msgheader clientsChat;
 					inpCnt = 0;
 					mstk+=1;
 				}else{
-					clientsChat.firstbyte='3';
+					clientsChat.firstbyte='5';
 					printChatRule();
 					continue;	
 				}
@@ -132,8 +142,12 @@ Msgheader clientsChat;
 					mstk+=1;
 				}else{
 					clientsChat.firstbyte='4';
+					clientsChat.msglen=0;
+					clientsChat.recipient_id=NULL;
+					clientsChat.sender_id=getnick;
+					pass_message(connect, sentMsg, &clientsChat);
 					mstk=3;
-					continue;	
+					return-1;	
 				}
 			
 		}else{
@@ -145,41 +159,18 @@ Msgheader clientsChat;
 						if((search = strstr(sentMsg,"chat")) != NULL){
 							sscanf(sentMsg, " %c %s %s", &c1, cmd, name);
 							if(strcmp(cmd,"chat")==0 && strchr(name,'@')!=NULL){
+								sscanf(name,"%c %s", &c2, nameR);
 								clientsChat.firstbyte='1';
 								clientsChat.msglen=0;
-								clientsChat.recipient_id=name;
-								clientsChat.sender_id=nick_name;
+								clientsChat.recipient_id=nameR;
+								clientsChat.sender_id=getnick;
 								cht=1;
 								inpCnt = 0;
 								chtCnt +=1;
 								memset(sentMsg, 0, sizeof(sentMsg));
-/*								for(i=0; i<MAXCHAT; i++){*/
-/*								    namSaved[i]=name;*/
-/*								    if(name==namSaved[i]){*/
-/*								       chtCnt--;*/
-/*								    }*/
-/*								}*/
-								
-								
-								//to support multple private sessions at a time
-							    if(chtCnt>MAXCHAT){
-									printf("You have %d private chats  ON already\n",MAXCHAT);
-									printf("and that is the max. You can't chat more friends\n");
-									printf("until you exit at least one. :)\n");
-									
-									chtCnt -=1;
-									goto CHATTING;
-								}else{
-									printf("You have %d private chats  ON :)\n",chtCnt);
-									
-								}
-								
-								if(chnCnt==MAXCHAN){
-									printf("You can't join more chats at this time.\n");
-									printf("Server overloaded. You should exit a channel.\n");
-									goto CHATTING;
-								}
-								
+								pass_message(connect, sentMsg, &clientsChat);
+								//printf("You have %d private chats  ON :)\n",chtCnt);
+															
 								continue;
 							}else{
 								printf("You entered a wrong character before the name\n");
@@ -194,31 +185,18 @@ Msgheader clientsChat;
 						}else if((search = strstr(sentMsg,"join")) != NULL){
 							sscanf(sentMsg, " %c %s %s", &c1, cmd, name);
 							if(strcmp(cmd,"join")==0 && strchr(name,'#')!=NULL){
+								sscanf(name,"%c %s", &c2, nameR);
 								clientsChat.firstbyte='2';
 								clientsChat.msglen=0;
-								clientsChat.recipient_id=name;
-								clientsChat.sender_id=nick_name;
+								clientsChat.recipient_id=nameR;
+								clientsChat.sender_id=getnick;
 								chn=1;
 								inpCnt = 0;
 								chnCnt +=1;
 								memset(sentMsg, 0, sizeof(sentMsg));
-								//to support multple channels at a time
-								if(chnCnt>MAXCHAN){
-									printf("You have joined %d channels already\n",MAXCHAN);
-									printf("and that is the max. You can't join more channels\n");
-									printf("until you exit at least one. :)\n");
+								pass_message(connect, sentMsg, &clientsChat);
+								//printf("You have joined %d channel\n",chnCnt);
 									
-									chnCnt -=1;
-									goto CHATTING;
-								}else{
-									printf("You have joined %d channel\n",chnCnt);
-									
-								}
-								if(chtCnt==MAXCHAN){
-									printf("You can't join more channels at this time.\n");
-									printf("Server overloaded. You should exit a chat.\n");
-									goto CHATTING;
-								}
 								
 								continue;
 							}else{
@@ -231,7 +209,7 @@ Msgheader clientsChat;
 								}
 							}
 						
-						}else if((clientsChat.firstbyte!='1' && cht!=1) || (clientsChat.firstbyte!='2' && chn!=1) || (clientsChat.firstbyte!='3') || (clientsChat.firstbyte!='4') || (strlen(cmd)!=4)){
+						}else if((clientsChat.firstbyte!='1' && cht!=1) || (clientsChat.firstbyte!='2' && chn!=1) || (clientsChat.firstbyte!='3') || (clientsChat.firstbyte!='4') || (clientsChat.firstbyte!='5') || (strlen(cmd)!=4)){
 								printf("Invalid command!\n");
 								memset(sentMsg, 0, sizeof(sentMsg));
 								memset(cmd, 0, sizeof(cmd));

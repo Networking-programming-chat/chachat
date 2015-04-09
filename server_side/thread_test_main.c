@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <string.h>
 #include <inttypes.h>
+#include <string.h> //strlen
 #include "msg_buffers.h"
 
 #define SPAM_THREAD_COUNT 5
@@ -57,10 +58,10 @@ void simple_test()
     
     list_buffers();
     
-    write_to_buffer(11, "This is a message");
-    write_to_buffer(11, "This is a second message");
-    write_to_buffer(11, "This is a third message");
-    write_to_buffer(11, "This is a fourth message");
+    write_to_buffer(11, "This is a message",strlen("This is a message")+1);
+    write_to_buffer(11, "This is a second message",strlen("This is a second message")+1);
+    write_to_buffer(11, "This is a third message",strlen("This is a third message")+1);
+    write_to_buffer(11, "This is a fourth message",strlen("This is a fourth message")+1);
     
     // Consume the lines
     print_line(read_buffer(11));
@@ -107,7 +108,7 @@ void *spam_thread(void *arg) {
     // Spam the buffer
     for (i = 0; i < 1000; ++i) {
         sprintf(msg, "Spam message #%d", i);
-        status = write_to_buffer(buffer_id, msg);
+        status = write_to_buffer(buffer_id, msg,strlen(msg)+1);
         if (status > 0) {
             printf("Spam message fail: %d item: %d\n", status, i);
         }

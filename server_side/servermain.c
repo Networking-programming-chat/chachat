@@ -56,13 +56,6 @@ pthread_mutex_t accept_lock = PTHREAD_MUTEX_INITIALIZER;
 socklen_t               addrlen;
 
 
-void hexprinter(char* str,int num){
-	for (int i = 0;i<num;i++){
-		printf("%02X", str[i]);
-	}
-	printf("\n");
-}
-
 void process_connection(int sockfd)
 {
     // Wait for client nick
@@ -70,11 +63,6 @@ void process_connection(int sockfd)
     char nickname[MAX_NICKLEN];
 
     //char incoming[1024];
-    
-    char *sendbody;
-    sendbody=(char *)malloc(MAXMSG*sizeof(char)+1);
-    Msgheader *sendheader;
-    sendheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
 
     char *mesbuff;
     mesbuff=(char *)malloc(MAXMSG*sizeof(char)+1);
@@ -90,56 +78,11 @@ void process_connection(int sockfd)
     
     // Select stuff
     fd_set rset;
-
-    
-   /* for (;;) {
-        n = read(sockfd, nickname, MAX_NICKLEN - 1);
-        if (n < 0) {
-            perror("read error (reading nickname)");
-            return;
-        }
-        
-        user = add_user_server(nickname, 0);
-        
-        if (user == NULL) {
-            printf("Nickname %s already in use.\n", nickname);
-            sprintf(response,"ERROR nickname already in use\n");
-            
-            n = write(sockfd,response,sizeof(response));
-            
-            if (n < 0) {
-                perror("write error (nickname response)");
-                return;
-            }
-            
-            if (i++ < 3) {
-                // Try again
-                continue;
-            }
-            
-            sprintf(response,"ERROR retry count full\n");
-        }
-        else {
-            printf("Client nick: %s user id: %d\n", nickname, user->user_id);
-            sprintf(response,"OK nickname set\n");
-        }
-        
-        // Done here
-        break;
-    }*/
     
     if((client_nick(sockfd,nickname,user))<0) {
         close(sockfd);
         return;
     }
-        
-    
-    /*n = write(sockfd, response, sizeof(response));
-    
-    if (n < 0) {
-        perror("write error (nickname final response)");
-    }*/
-    
 
     // Register message buffer
     new_buffer(user->user_id);
@@ -150,8 +93,11 @@ void process_connection(int sockfd)
     // Process client messages
     for (;;) {
         char * sendmessage;
+        sendmessage=(char *)malloc((MAXMSG+HDRSIZE)*sizeof(char)+1);
+        
         char *sendbody;
         sendbody=(char *)malloc(MAXMSG*sizeof(char)+1);
+        
         Msgheader *sendheader;
         sendheader=(Msgheader *)malloc(HDRSIZE*sizeof(char)+1);
         
@@ -168,8 +114,10 @@ void process_connection(int sockfd)
         
         if (FD_ISSET(sockfd, &rset)) {
             
+            memset(mesbuff,0,sizeof(mesbuff));
+            memset(mesheader,0,sizeof(mesheader));
+            
             // Read message
-           // n = recv(sockfd, incoming, 1023, 0);
             n = read_message(sockfd, mesbuff, mesheader);
             
             if (n < 0) {
@@ -177,19 +125,12 @@ void process_connection(int sockfd)
                 break;
             }
             
+            hexprinter(mesheader,45);
+            
             if (n > 0) {
-                /*
-                // Handle message sent by client
                 
-                n = handle_message(user, incoming);
-                if (n < 0) {
-                    // Quit message sent
-                    break;
-                }
-                
-                //write_to_buffer(user->user_id, incoming);
-                //printf("Received message: %s\n", incoming);
-                 */
+                printf("message body1: %s\n",mesbuff);
+
                 
                 if (mesheader->firstbyte=='1') {//client sends private chat message
                     chatMessageHandle(sockfd, mesbuff, mesheader);
@@ -204,37 +145,37 @@ void process_connection(int sockfd)
                     
                 }else if (mesheader->firstbyte=='4') {//client sends quit command
                     quitMessageHandle(sockfd,mesbuff,mesheader);
-                    
+                    return;
                     
                 }
             }
         }
+        
+        memset(sendmessage,0,sizeof(sendmessage));
         
         // Check for messages for client
         sendmessage = read_buffer(user->user_id);
         
         if (sendmessage != NULL) {
             
-            hexprinter(sendmessage, 45);
+           // hexprinter(sendmessage, 45);
     		split_datas(sendmessage,sendbody,sendheader);
             
             print_hdr(sendheader);
             
-            printf("Will send to client: %s\n", sendbody);
+            printf("sendbody:\n");
+            printf("%s\n",sendbody);
             
             // Send to client
-            // n = write(sockfd, sendmessage, n+1);
             pass_message(sockfd,sendbody,sendheader);
             
             free(sendmessage);
             free(sendbody);
             free(sendheader);
-            
-            if (n < 0) {
-                perror("write error (message to client)\n");
-                break;
-            }
         }
+        
+        
+        
 
     }
     
