@@ -37,27 +37,26 @@ void *reader_thread(void *arg) {
     thread_s *id;
     int sockfd;
     ssize_t n;
-    char buffer[1024];
+    char buffer[MAXMSG];
     char buf[20];
     id = (thread_s*) arg;
     sockfd = id->socketfd;
 
-    printf("reader socket: %d\n", id->socketfd);
-    
+    /* printf("reader socket: %d\n", id->socketfd);
+    printf("firstbyte is: %c\n", id->header.firstbyte);
+    printf("recipient_id is: %s\n", id->header.recipient_id);
+    printf("sender_id is: %s\n", id->header.sender_id); */
     // Read socket in a loop
     for (;;) {
-		printf(" x%sx %s<%s:> ",get_timestamp(buf),COLOR_GRN,&id->header.recipient_id);
-		printf("file descriptor is: %d\n",sockfd);
-		n = read_message(sockfd, buffer, &id->header);
-        n = read(sockfd, buffer, 1023);
-        if (n < 0) {
-            perror("read error");
-            break;
-        }
-        
-        if (n > 0) {
+        if ((n = read_message(sockfd, buffer, &id->header))> 0) {
             // Write to stdout
-            printf("%s", buffer);
+			printf(" x%sx %s<%s:> ",get_timestamp(buf),COLOR_GRN,id->header.recipient_id);
+            puts(buffer);
+			//printf(" x%sx %s<%s:> ",get_timestamp(buf),COLOR_GRN,id->header.recipient_id);
+			//usleep(READ_WRITE_TIMEOUT);
+        }else{
+			perror("read error");
+            break;
         }
     }
     
@@ -66,28 +65,36 @@ void *reader_thread(void *arg) {
     pthread_exit(arg);
 }
 
-/* void *threadRead(void *argmnt){
-	
-	struct threadParam *arg = argmnt;
-	int n=0;
-	char buf[20];
-	while(1)
-	{
-		usleep(READ_TIMEOUT_USEC);
-		printf(" x%sx %s<%s:> ",get_timestamp(buf),COLOR_GRN,&arg->header.recipient_id);
-		printf("file descriptor is: %d\n",arg->conn);
-		if ((n = read_message(arg->conn, arg->recvbuf, &arg->header))<0) {
-				perror("read_message:");
-				return -1;
-		}
-		
-		
-	}
-
-	return NULL;
-} */
 
 
+void *writer_thread(void *arg) {
+    thread_s *id;
+    int sockfd;
+    ssize_t n;
+    char buffer[MAXMSG];
+    char buf[20];
+    id = (thread_s*) arg;
+    sockfd = id->socketfd;
 
-
-
+    /* printf("reader socket: %d\n", id->socketfd);
+    printf("firstbyte is: %c\n", id->header.firstbyte);
+    printf("recipient_id is: %s\n", id->header.recipient_id);
+    printf("sender_id is: %s\n", id->header.sender_id); */
+    // Read socket in a loop
+    for (;;) {
+        if ((n = read_message(sockfd, buffer, &id->header))> 0) {
+            // Write to stdout
+			printf(" x%sx %s<%s:> ",get_timestamp(buf),COLOR_GRN,id->header.sender_id);
+            puts(buffer);
+			//printf(" x%sx %s<%s:> ",get_timestamp(buf),COLOR_GRN,id->header.recipient_id);
+			//usleep(READ_WRITE_TIMEOUT);
+        }else{
+			perror("read error");
+            break;
+        }
+    }
+    
+    printf("Reader thread finished\n");
+    
+    pthread_exit(arg);
+}

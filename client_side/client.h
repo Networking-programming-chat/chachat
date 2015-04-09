@@ -57,16 +57,16 @@ void *reader_thread(void *arg);
 int startChat(char *getCmd, char *getName);
 
 //handles the client's nickname
-int client_nick(int sockfd, const char *getName);
+int client_nick(int sockfd, char *getName);
 
 //handles client's connection to the server
 int client_connect(const char *servName, const char *servPort);
 
 //Handling client's normal message
-int chatMessageHandle(int connfd, char *send, char *recv, Msgheader chatheader);
+int chatMessageHandle(int connfd, char *send, Msgheader chatheader);
 
 //Handling client's channel join command message
-int chanMessageHandle(int connfd, char *send, char *recv, Msgheader chatheader);
+int chanMessageHandle(int connfd, char *send, Msgheader chatheader);
 
 //Handling client's exits command message
 void exitMessageHandle(int connfd, Msgheader chatheader);

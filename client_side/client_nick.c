@@ -1,6 +1,6 @@
 #include "client.h"
 
-int client_nick(int sockfd, const char *nickname){
+int client_nick(int sockfd, char *nickname){
     
     char nick[MAX];
     ssize_t n1;
