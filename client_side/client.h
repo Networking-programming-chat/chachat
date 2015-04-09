@@ -13,7 +13,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <time.h>
-#define READ_TIMEOUT 100000000
+#define READ_WRITE_TIMEOUT 50000000
 #define MAX 50
 #define COLOR_NRM   "\x1B[0m"
 #define COLOR_RED   "\x1B[31m"
@@ -38,6 +38,7 @@ typedef struct {
     pthread_t thread_id;
     int socketfd;
 	char *recvbuf;
+	char *writbuf;
 	Msgheader header;
 } thread_s;
 
@@ -53,11 +54,14 @@ char* get_timestamp(char buffer [20]);
 //thread for reading incoming messages
 void *reader_thread(void *arg);
 
+//thread for writing out going messages
+void *writer_thread(void *arg);
+
 //handles input at the start of chat 
 int startChat(char *getCmd, char *getName);
 
 //handles the client's nickname
-int client_nick(int sockfd, const char *getName);
+int client_nick(int sockfd,  char *getName);
 
 //handles client's connection to the server
 int client_connect(const char *servName, const char *servPort);
