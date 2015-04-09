@@ -1,33 +1,8 @@
 //
 //  test_client_main.c
-//  Chachat
+//  Chachat all copyright reserved
 //
-
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/select.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <stdio.h>
-#include <arpa/inet.h>
-
-#include <termios.h>
-#include <unistd.h>
-
-#include <pthread.h>
-#include <signal.h>
-
-#include <errno.h>
-#include <stdarg.h> // va_ args
-#include <stdlib.h> // exit()
-
-#include "netproto.h"
-#include "terminal_color.h"
 #include "client.h"
-
-#include <time.h>
-
 
 #define MAXLINE 80
 #define CONNECTION_AMOUNT 10
@@ -140,32 +115,24 @@ void *reader_thread(void *arg) {
     id = (thread_s*) arg;
     sockfd = id->socketfd;
     
-    
-    
-    printf("reader socket: %d\n", id->socketfd);
-    
+    //printf("reader socket: %d\n", id->socketfd);
     // Read socket in a loop
     for (;;) {
        // n = read(sockfd, buffer, 1023);
         memset(buffer,0,sizeof(buffer));
-        n = read_message(sockfd,buffer,&header);
-        if (n < 0) {
+        
+        if ((n = read_message(sockfd,buffer,&header)) > 0){  
+            //memset(buf,0,sizeof(buf));
+            get_timestamp(buf);
+            printf(" x%sx %s<%s:> ",buf,COLOR_GRN,header.sender_id);
+            puts(buffer);
+        }else{
             //perror("read error");
             break;
         }
-        
-        if (n > 0){
-            // Write to stdout
-           // printf("%s", buffer);
-            
-            memset(buf,0,sizeof(buf));
-            get_timestamp(buf);
-            printf(" x%sx %s<%s:> ",buf,COLOR_GRN,header.recipient_id);
-            printf(buffer);
-        }
     }
     
-    printf("Reader thread finished\n");
+    //printf("Reader thread finished\n");
     
     pthread_exit(arg);
 }
@@ -196,30 +163,7 @@ int handletask(int mainsockfd)
     n = pthread_create(&(thread->thread_id), NULL, reader_thread, (void*)thread);
     check((int)n, "thread creation failed");
     
-    // Send messages
-    /*for (;;) {
-        
-        fgets(nick, 127, stdin);
-        
-        n = strlen(nick);
-        //printf("message length: %zd\n", n);
-        
-        if (n == 1) {
-            // Only newline
-            continue;
-        }
-        
-        // Set the newline to 0
-        nick[n-1] = '\0';
-        
-        if (strncmp(nick, "quit", 4) == 0) {
-            break;
-        }
-        
-        n = write(mainsockfd, nick, n);
-        checkneg((int)n, "write error");
-    }*/
-    
+    //handles sending both chat and channel messages.
     send_message(mainsockfd,nick);
     
     printf("Done\n");
@@ -282,4 +226,3 @@ int main(int argc, char **argv)
     
     return 0;
 }
-
