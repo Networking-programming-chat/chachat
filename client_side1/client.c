@@ -59,15 +59,10 @@ thread->socketfd = connect;
 			clientsChat.sender_id=getnick;
 			//printf("User: %s , opt=%c\n", sentMsg, clientsChat.firstbyte);
 			//printf("chat=%d and chan=%d\n", chtCnt, chnCnt);
-<<<<<<< HEAD
 			thread->recvbuf = recvMsg;
 			thread->header = clientsChat;
 			pthread_create(&(thread->thread_id), NULL, reader_thread, (void*)thread);
 			chatMessageHandle(connect, sentMsg, clientsChat); //chat messenger function
-=======
-		
-			chatMessageHandle(connect, sentMsg, recvMsg, clientsChat); //chat messenger function
->>>>>>> 7da416bb3dae1c028b3fbd03489f547a9cd42c51
 			memset(sentMsg, 0, sizeof(sentMsg)); //empty message buffer
 			continue;
 			
@@ -77,15 +72,10 @@ thread->socketfd = connect;
 			clientsChat.sender_id=getnick;
 			//printf("User: %s , opt=%c\n", sentMsg, clientsChat.firstbyte);
 			//printf("chat=%d and chan=%d\n", chtCnt, chnCnt);
-<<<<<<< HEAD
 			thread->recvbuf = recvMsg;
 			thread->header = clientsChat;
 			pthread_create(&(thread->thread_id), NULL, reader_thread, (void*)thread);
 			chanMessageHandle(connect, sentMsg, clientsChat); //chan messenger function
-=======
-			
-			chanMessageHandle(connect, sentMsg, recvMsg, clientsChat); //chat messenger function
->>>>>>> 7da416bb3dae1c028b3fbd03489f547a9cd42c51
 			memset(sentMsg, 0, sizeof(sentMsg)); //empty message buffer
 			continue;
 		 
