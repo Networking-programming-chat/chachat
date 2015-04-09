@@ -154,6 +154,10 @@ void hexprinter(char* str,int num){
 
 /*Handling client's private message*/
 void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader){
+    
+    if (mesbuff==NULL) {
+        return;
+    }
     char response[50];
     Msgheader *respheader;
     char *message;

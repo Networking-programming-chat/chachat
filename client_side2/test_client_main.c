@@ -156,12 +156,12 @@ void *reader_thread(void *arg) {
         
         if (n > 0){
             // Write to stdout
-            printf("%s", buffer);
+           // printf("%s", buffer);
             
             memset(buf,0,sizeof(buf));
             get_timestamp(buf);
             printf(" x%sx %s<%s:> ",buf,COLOR_GRN,header.recipient_id);
-            puts(buffer);
+            printf(buffer);
         }
     }
     
