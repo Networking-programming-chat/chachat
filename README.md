@@ -28,9 +28,6 @@ Usage:
 
 Compiled binaries in ./bin
 
-- server_side/make builds the server. Under server_side folder, type "make". The executable file name is "servtest", Type "./servtest <port>".
-
-
 #4. Communication protocol
 
 - Universal header for commands/messages 
