@@ -6,14 +6,26 @@
 #include <sys/socket.h> //socket.
 #include <strings.h> //bzero
 #include <netdb.h> // addrinfo
-#include <unistd.h> //close
-#include <stdlib.h>  
+#include <unistd.h> //close 
 #include <fcntl.h> 
 #include <string.h>
 #include <pthread.h>
 #include <time.h>
-
 #include "netproto.h"
+#include <sys/types.h>
+#include <sys/select.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <stdio.h>
+#include <arpa/inet.h>
+#include <termios.h>
+#include <signal.h>
+#include <errno.h>
+#include <stdarg.h> // va_ args
+#include <stdlib.h> // exit()
+#include "terminal_color.h"
+
 
 
 #define READ_TIMEOUT 100000000
