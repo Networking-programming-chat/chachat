@@ -18,8 +18,15 @@ Client:
 
 #3. Instructions
 
-- testserver/client builds with "make" in project root. this was used for protocol testing.
-- make testserver/make testclient to build separately
+Compilation:
+
+```
+make
+```
+
+Usage:
+
+Compiled binaries in ./bin
 
 - server_side/make builds the server. Under server_side folder, type "make". The executable file name is "servtest", Type "./servtest <port>".
 
