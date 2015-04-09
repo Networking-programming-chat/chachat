@@ -23,7 +23,7 @@ servtest:
 cleanobjects:
 	rm -f *.o
 
-clean:
+clean: cleanobjects
 	rm -f ${PROGS} *~ *.a *.db
 
 .PHONY: dbtest threadtest all clean

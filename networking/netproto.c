@@ -123,7 +123,7 @@ int read_message(int fd, char * msg_dest, Msgheader *hdr_dest){
 		if (totbytes >= HDRSIZE) break;
 	}
 	if (n < HDRSIZE) {
-        perror("hdr_read error");
+        //perror("hdr_read error");
 		return -1;
     }
 	
@@ -138,7 +138,7 @@ int read_message(int fd, char * msg_dest, Msgheader *hdr_dest){
 		if (totbytes >= hdr_dest->msglen) break;
 	}
 	if (n < 0) {
-        perror("msgread error");
+        //perror("msgread error");
 		return -1;
     }
 	buffer[totbytes]=0;
@@ -184,7 +184,7 @@ int server_read(int fd, char * msg_dest, Msgheader *hdr_dest){
 	}
 	
 	if (n < 0) {
-	    perror("hdr_read error");
+	    //perror("hdr_read error");
 		return -1;
 	}
 	//memset(hdrbuf, 0, HDRSIZE);
@@ -197,7 +197,7 @@ int server_read(int fd, char * msg_dest, Msgheader *hdr_dest){
 		if (totbytes >= hdr_dest->msglen) break;
 	}
 	if (n < 0) {
-        perror("msgread error");
+        //perror("msgread error");
 		return -1;
     }
 	buffer[totbytes]=0;
