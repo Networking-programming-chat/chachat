@@ -74,14 +74,16 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 		return NULL;
 	
 	if(hdr->recipient_id){
+		lf=memchr(hdr->recipient_id, '\n', MAX_NICKLEN);
 		if ((lf=memchr(hdr->recipient_id, '\n', MAX_NICKLEN)) != NULL){
 			*lf='\0';
 		}
 		strncpy(&buffer[3], hdr->recipient_id, MAX_NICKLEN);//3-22
 	
 	}
-	if((hdr->sender_id) != NULL){
-		if ((lf=memchr((hdr->sender_id), '\n', MAX_NICKLEN)) != NULL){
+	if(((hdr->sender_id)) != NULL){
+		lf=memchr((hdr->sender_id), '\n', MAX_NICKLEN);
+		if (lf){
 			*lf='\0';
 		}
 		strncpy(&buffer[23], hdr->sender_id, MAX_NICKLEN);//23-42

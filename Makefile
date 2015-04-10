@@ -19,7 +19,7 @@ SERVER=chachat-server
 
 PROGS=$(CLIENT) $(SERVER)
 
-all: $(SERVER) $(CLIENT) cleanobjects
+all: $(SERVER) $(CLIENT) tester cleanobjects
 
 $(SERVER):
 	mkdir -p bin; \
@@ -32,6 +32,12 @@ $(CLIENT):
 	cd client_side2; \
 	make; \
 	mv clienttest ../bin/$(CLIENT)
+
+tester: 
+	mkdir -p bin; \
+	cd test/testserver; \
+	make; \
+	mv a.out ../../bin/tester
 
 cleanobjects:
 	rm -f ./server_side/*.o ./server_side/*.a

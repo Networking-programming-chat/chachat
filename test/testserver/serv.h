@@ -3,9 +3,8 @@
 
 #include <sys/socket.h>
 #include "netproto.h"
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
+#include "db.h"
+#include "msg_buffers.h"
 
 #define LISTENQ 5
 
@@ -14,22 +13,36 @@
 * char *serv is the port of server in string format
 * return: the listening sock desciptor
 */
-int serv_listen(const char *host, const char *serv);
+int serv_listen(const char *host, const char *serv, socklen_t *addrlenp);
 
 /*print the connected address*/
 void print_address(const struct addrinfo * res);
 
-/*readn nickname from the client
+/*read nickname from the client
  */
 int read_nickname(int socket,char *);
 
 /*add client nickname in the database*/
-int client_nick(int socket);
+int client_nick(int socket,char *nickname,cc_user *user1);
 
-//Handling client's normal message
-void normalMessageHandle(char *mesbuff, Msgheader *mesheader);
+//Handling client's private message
+void chatMessageHandle(int connfd, char *mesbuff, Msgheader *mesheader);
 
-//Handling client's command message
-void commandMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
+//Handling client's channel message
+void chanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
+
+//Handling client's exit channel message
+void exitChanMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
+
+//Handling client's quite command message
+void quitMessageHandle(int connfd,char *mesbuff, Msgheader *mesheader);
+
+/*check if the channel already exit, if not, create one
+*check if the user in the channel, if not, add to
+ */
+void client_to_channel(Msgheader *mesheader);
+
+void hexprinter(char* str,int num);
+
 
 #endif

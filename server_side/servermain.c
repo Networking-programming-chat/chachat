@@ -116,7 +116,7 @@ void process_connection(int sockfd)
             n = read_message(sockfd, mesbuff, mesheader);
             
             if (n < 0) {
-                perror("recv error (client processing)");
+                perror("Client disconnected");
                 break;
             }
             
