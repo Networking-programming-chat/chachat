@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h> // exit()
 #include <string.h>
+#include <inttypes.h>
 
 typedef void (*db_user_callback)(cc_user*);
 typedef void (*db_channel_callback)(cc_channel*);
@@ -144,9 +145,10 @@ static int printsql (int test, char *errmsg, const char * message, ...)
 
 static int get_max_id(void *data, int argc, char **argv, char **azColName)
 {
-    int type, i;
+    uint64_t type;
+    int i;
     
-    type = (int)data;
+    type = (uint64_t)data;
     
     
     // Iterate the arguments to show the query results

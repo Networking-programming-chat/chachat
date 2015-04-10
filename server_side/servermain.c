@@ -61,7 +61,7 @@ void process_connection(int sockfd)
     
 	char* sendmessage,*sendbody,*mesbuff;
 	Msgheader *sendheader,*mesheader;
-	char nickname[MAX_NICKLEN];
+	char nickname[MAX_NICKLEN],hdrprintbuf[HDRSIZE];
 	int i = 0;
 	ssize_t n;
 	struct timespec ts;
@@ -120,7 +120,8 @@ void process_connection(int sockfd)
                 break;
             }
             
-            hexprinter(mesheader,43);
+            serialize_hdr(hdrprintbuf, mesheader);
+            hexprinter(hdrprintbuf,HDRSIZE);
             
             if (n > 0) {
                 

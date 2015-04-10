@@ -70,6 +70,8 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 	memset(buffer, hdr->firstbyte, 1);
 	memcpy(&buffer[1], &tmp, 2);//1,2
 	char *lf;
+	if(!hdr)
+		return NULL;
 	
 	if(hdr->recipient_id){
 		if ((lf=memchr(hdr->recipient_id, '\n', MAX_NICKLEN)) != NULL){
@@ -78,8 +80,8 @@ char* serialize_hdr(char* buffer, Msgheader* hdr)
 		strncpy(&buffer[3], hdr->recipient_id, MAX_NICKLEN);//3-22
 	
 	}
-	if(hdr->sender_id){
-		if ((lf=memchr(hdr->sender_id, '\n', MAX_NICKLEN)) != NULL){
+	if((hdr->sender_id) != NULL){
+		if ((lf=memchr((hdr->sender_id), '\n', MAX_NICKLEN)) != NULL){
 			*lf='\0';
 		}
 		strncpy(&buffer[23], hdr->sender_id, MAX_NICKLEN);//23-42
@@ -216,15 +218,15 @@ int pass_message(int fd, const char * message, Msgheader* hdr){
 	uint16_t msgsize;
 	char hdrbuf[HDRSIZE];
 	Msgheader sendme;
-		
-	memset(&sendme, 0, sizeof(Msgheader));
 	
+	if(!hdr){
+		perror("!header");
+		return -1;
+	}
+	memset(&sendme, 0, sizeof(Msgheader));
 	if(!message){
+		perror("!message");
 		msgsize=0;
-		hdr->msglen=msgsize;
-	}	
-	else if(!hdr->msglen){
-		msgsize=strlen(message); //might overflow
 		hdr->msglen=msgsize;
 	}
 	else msgsize=hdr->msglen;
@@ -238,11 +240,13 @@ int pass_message(int fd, const char * message, Msgheader* hdr){
         perror("write error with Msgheader");
 		return -1;
     }
+	if(message){
 	n = write(fd, message, msgsize);
     // Check errors
     if (n < 0) {
         perror("write error with message data");
 		return -1;
+    }
     }
 	return n;
 }
