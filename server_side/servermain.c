@@ -5,18 +5,21 @@
 //  Created by Judy on 3/13/15.
 //  Copyright (c) 2015 Judy. All rights reserved.
 //
-
+//#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h> // malloc, free
 #include <unistd.h> //read
-//#include <strings.h>
 #include <string.h>
 #include <pthread.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <netdb.h>
 #include <stdarg.h> // va_
 #include <errno.h>
+#include <syslog.h>
+#include <fcntl.h>
 
 #include "serv.h"
 #include "msg_buffers.h"
@@ -214,6 +217,8 @@ void *conn_thread (void *arg)
 
 void thread_make(long i, int fd){
     int status;
+    
+    fprintf(stderr, "this is THREADMAkE!\n");
     pool[i].socketfd = fd;
     
     status = pthread_create(&pool[i].thread_id, NULL, conn_thread, &pool[i]);
@@ -222,51 +227,100 @@ void thread_make(long i, int fd){
     return;
 }
 
-
 //type ip address(or not), port number.
 int main(int argc, const char * argv[]) {
-    int listenfd, n;
-    
-    //char *mesbuff;
-    //const int on = 1;
-    
-    // Check arguments
-    if (argc==2)
-        listenfd=serv_listen(NULL, argv[1], &addrlen);
-    else if (argc==3)
-        listenfd=serv_listen(argv[1], argv[2], &addrlen);
-    else {
-        fprintf(stderr, "usage: %s <host> <port#>\n ", argv[0]);
+    pid_t pid, sid;
+    int listenfd, n, k;
+		
+    if (argc !=3){
+        fprintf(stderr, "usage: %s <host> <port#>\n", argv[0]);
         return -1;
         
     }
+    //char *mesbuff;
+    //const int on = 1;
     
-    // Setup database and msg buffers
+    
+    
     init_db();
-    init_msg_buffers();
-    
-    //mesbuff = malloc(MAXMSG*sizeof(char)+1);
-    
-    for (n = 0;n<THREAD_COUNT;n++){
-        thread_make(n, listenfd);
+	init_msg_buffers();
+	
+    /* Fork off the parent process */
+    pid = fork();
+    if (pid < 0) {
+            exit(EXIT_FAILURE);
     }
-    
-    // Join all threads
-    for (n = 0; n < THREAD_COUNT; n++) {
-        void *thread_result;
-        int s;
-        
-        s = pthread_join(pool[n].thread_id, &thread_result);
-        
-        if (s != 0) {
-            perror("thread join");
-        }
+    /* If we got a good PID, then
+       we can exit the parent process. */
+    if (pid > 0) {
+            printf("Going dark. Do your business and kill me, im %d\n", pid);
+    		exit(EXIT_SUCCESS);
     }
-    
-    close_db();
-    clear_all_msg_buffers();
-    
-    return 0;
-    
-}
 
+    /* Change the file mode mask */
+    umask(0);       
+	 
+    /* Open any logs here */
+    
+    /* Create a new SID for the child process */
+    sid = setsid();
+    if (sid < 0) {
+            perror("sid");
+            exit(EXIT_FAILURE);
+    }
+    
+    /* Change the current working directory */
+    if ((chdir("/")) < 0) {
+            perror("chdir");
+            exit(EXIT_FAILURE);
+    }
+    
+    /* Close out the standard file descriptors */
+    //printf("zero is: %d\ );
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+	close(STDERR_FILENO);
+    
+    k=open("/dev/null",O_RDWR); /* open stdin */
+	dup(k); /* stdout */
+	dup(k); /* stderr */
+	
+		
+    /* Daemon-specific initialization goes here */
+    //openlog("chachat-server", LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER);
+	//syslog(LOG_INFO, "Entering Daemon");
+	//tolog(&stderr);
+    //tolog(&stdout);
+    
+    
+    /* The Big Loop */
+    //while (1) {
+    	
+		listenfd=serv_listen(argv[1], argv[2], &addrlen);
+		// Setup database and msg buffers
+		
+
+		//mesbuff = malloc(MAXMSG*sizeof(char)+1);
+	
+		for (n = 0;n<THREAD_COUNT;n++){
+			thread_make(n, listenfd);
+		}
+	
+		// Join all threads
+		for (n = 0; n < THREAD_COUNT; n++) {
+			void *thread_result;
+			int s;
+		
+			s = pthread_join(pool[n].thread_id, &thread_result);
+		
+			if (s != 0) {
+				perror("thread join");
+			}
+		}
+		
+		close_db();
+		clear_all_msg_buffers();
+		closelog();
+		return 0;
+    //}
+}
